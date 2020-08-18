@@ -2,11 +2,15 @@
 
 This operator can be used to propagate a single ImagePullSecret to all namespaces within your cluster, so that images can be pulled with authentication.
 
+### Why is this operator required?
+
+The primary reason for creating this operator, is to make it easier for users of Kubernetes to consume image from the Docker Hub. Docker's recent [pricing and rate-limiting announcement](https://www.docker.com/pricing) for the Docker Hub has meant that a pull secret is required to make use of images on the Docker Hub.
+
 Pulling images with authentication is required in two scenarios:
 * To extend the Docker Hub anonymous pull limits to a practical number
-* To access private registries or repos
+* To access private registries or repos on the Docker Hub
 
-The normal process is as follows:
+The normal process is as follows, which becomes tedious and repetitive when you have more than one namespace in a cluster.
 
 * Create a secret
 * Edit your service account, and add the name of the secret to `imagePullSecrets`
