@@ -12,6 +12,7 @@ namePrefix: registry-creds-
 #commonLabels:
 #  someName: someValue
 
+
 bases:
 - ../crd
 - ../rbac
@@ -19,7 +20,7 @@ bases:
 
 patchesStrategicMerge:
   # Protect the /metrics endpoint by putting it behind auth.
-  # If you want your controller-manager to expose the /metrics
+  # If you want your registry-creds-controller to expose the /metrics
   # endpoint w/o any authn/z, please comment the following line.
 # - manager_auth_proxy_patch.yaml
 

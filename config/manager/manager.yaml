@@ -2,25 +2,25 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    control-plane: controller-manager
+    control-plane: registry-creds-controller
   name: system
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: controller-manager
+  name: registry-creds-controller
   namespace: system
   labels:
-    control-plane: controller-manager
+    control-plane: registry-creds-controller
 spec:
   selector:
     matchLabels:
-      control-plane: controller-manager
+      control-plane: registry-creds-controller
   replicas: 1
   template:
     metadata:
       labels:
-        control-plane: controller-manager
+        control-plane: registry-creds-controller
     spec:
       containers:
       - command:
