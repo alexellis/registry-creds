@@ -34,6 +34,8 @@ type ClusterPullSecretStatus struct {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:scope=Cluster
+// +kubebuilder:printcolumn:name="SecretName",type=string,JSONPath=`.spec.secretRef.name`
+// +kubebuilder:printcolumn:name="SecretNamespace",type=string,JSONPath=`.spec.secretRef.namespace`
 
 // ClusterPullSecret is the Schema for the clusterpullsecrets API
 type ClusterPullSecret struct {
