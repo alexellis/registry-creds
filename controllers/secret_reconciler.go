@@ -4,6 +4,7 @@ import (
 	v1 "alexellis/registry-creds/api/v1"
 	"context"
 	"fmt"
+	"strings"
 
 	ctrl "sigs.k8s.io/controller-runtime"
 
@@ -25,9 +26,21 @@ type SecretReconciler struct {
 // Reconcile applies an PullSecret to a Namespace
 func (r *SecretReconciler) Reconcile(pullSecret v1.ClusterPullSecret, namespaceName string) error {
 	ctx := context.Background()
+	const ignoreAnnotation = "alexellis.io/registry-creds.ignore"
+
+	targetNamespace := &corev1.Namespace{}
+	if err := r.Get(ctx, client.ObjectKey{Name: namespaceName}, targetNamespace); err != nil {
+		wrappedErr := errors.Wrapf(err, "unable to fetch namespace for introspection:%s", namespaceName)
+		r.Log.Info(wrappedErr.Error())
+		return wrappedErr
+	}
+
+	if targetNamespace.Annotations[ignoreAnnotation] == "1" || strings.ToLower(targetNamespace.Annotations[ignoreAnnotation]) == "true" {
+		r.Log.Info(fmt.Sprintf("ignoring namespace: %s", namespaceName))
+		return nil
+	}
 
 	r.Log.Info(fmt.Sprintf("Getting SA for: %v", namespaceName))
-
 	secretKey := pullSecret.Name + "-registrycreds"
 
 	if pullSecret.Spec.SecretRef == nil || pullSecret.Spec.SecretRef.Name == "" || pullSecret.Spec.SecretRef.Namespace == "" {

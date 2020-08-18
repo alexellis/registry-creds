@@ -24,6 +24,7 @@ Backlog (done):
 - [x] Use a "seed" secret via an object reference
 - [x] Watch new namespaces and create new secrets
 - [x] Update the ImagePullSecret list for the default ServiceAccount in each namespace
+- [x] Add an exclude annotation for certain namespaces `alexellis.io/registry-creds.ignore`
 
 Todo:
 - [ ] Use `apierrors.IsNotFound(err)` everywhere instead of assuming an error means not found
