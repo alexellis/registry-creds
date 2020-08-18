@@ -29,6 +29,9 @@ type ClusterPullSecretReconciler struct {
 // +kubebuilder:rbac:groups=ops.alexellis.io,resources=clusterpullsecrets,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=ops.alexellis.io,resources=clusterpullsecrets/status,verbs=get;update;patch
 
+// +kubebuilder:rbac:groups=core,resources=secrets,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=core,resources=secrets/status,verbs=get;update;patch
+
 func (r *ClusterPullSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
 	_ = r.Log.WithValues("clusterpullsecret", req.NamespacedName)
@@ -38,23 +41,21 @@ func (r *ClusterPullSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, 
 		r.Log.Info(fmt.Sprintf("%s\n", errors.Wrap(err, "unable to fetch pullSecret")))
 	} else {
 
-		r.Log.Info(fmt.Sprintf("Found: %s, %v\n", pullSecret.Name, pullSecret.Spec.Secret != nil))
+		r.Log.Info(fmt.Sprintf("Found: %s\n", pullSecret.Name))
 
-		if pullSecret.Spec.Secret != nil {
+		namespaces := &corev1.NamespaceList{}
+		r.Client.List(ctx, namespaces)
 
-			namespaces := &corev1.NamespaceList{}
-			r.Client.List(ctx, namespaces)
+		r.Log.Info(fmt.Sprintf("Found %d namespaces", len(namespaces.Items)))
 
-			r.Log.Info(fmt.Sprintf("Found %d namespaces", len(namespaces.Items)))
-
-			for _, namespace := range namespaces.Items {
-				namespaceName := namespace.Name
-				err := r.SecretReconciler.Reconcile(pullSecret, namespaceName)
-				if err != nil {
-					r.Log.Info(fmt.Sprintf("Found error: %s", err.Error()))
-				}
+		for _, namespace := range namespaces.Items {
+			namespaceName := namespace.Name
+			err := r.SecretReconciler.Reconcile(pullSecret, namespaceName)
+			if err != nil {
+				r.Log.Info(fmt.Sprintf("Found error: %s", err.Error()))
 			}
 		}
+
 	}
 
 	return ctrl.Result{}, nil

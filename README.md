@@ -21,6 +21,7 @@ This is a very early, working prototype. Do not use it in production, you can cr
 
 Backlog (done):
 - [x] Create secrets in each namespace at start-up
+- [x] Use a "seed" secret via an object reference
 - [x] Watch new namespaces and create new secrets
 - [x] Update the ImagePullSecret list for the default ServiceAccount in each namespace
 
@@ -50,33 +51,34 @@ make run
 
 To use this operator create a `ClusterPullSecret` CustomResource and apply it to your cluster.
 
-```yaml
-apiVersion: ops.alexellis.io/v1
-kind: ClusterPullSecret
-metadata:
-  name: dockerhub
-spec:
-  secret:
-    data:
-      .dockerconfigjson: base64-encodedtextgoeshere
-    type: kubernetes.io/dockerconfigjson
-```
-
-You can obtain the text for the `.dockerconfigjson` field by running:
+Create a secret so that it can be referenced by the ClusterPullSecret. You can customise the name, and namespace as per your own preference.
 
 ```bash
 export USERNAME=username
 export PW=mypassword
 export EMAIL=me@example.com
 
-kubectl create secret docker-registry temp-pull-secret \
+kubectl create secret docker-registry registry-creds-secret \
+  --namespace kube-system
   --docker-username=$USERNAME \
   --docker-password=$PW \
-  --docker-email=$EMAIL \
-  --dryrun -o yaml
+  --docker-email=$EMAIL
 ```
 
 If you're not using the Docker Hub, then add `--docker-password`
+
+Now create a `ClusterPullSecret` YAML file, and populate the `secretRef` with the secret name and namespace from above.
+
+```yaml
+apiVersion: ops.alexellis.io/v1
+kind: ClusterPullSecret
+metadata:
+  name: dockerhub
+spec:
+  secretRef:
+    name: registry-creds-secret
+    namespace: kube-system
+```
 
 ## Testing it out
 

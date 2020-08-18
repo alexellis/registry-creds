@@ -27,6 +27,26 @@ rules:
   - patch
   - update
 - apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - secrets/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
   - ops.alexellis.io
   resources:
   - clusterpullsecrets

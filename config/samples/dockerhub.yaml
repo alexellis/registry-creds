@@ -3,7 +3,7 @@ kind: ClusterPullSecret
 metadata:
   name: dockerhub
 spec:
-  secret:
-    data:
-      .dockerconfigjson: see readme on how to generate this line
-    type: kubernetes.io/dockerconfigjson
+# See README.md for how to create the secret below
+  secretRef:
+    name: registry-creds-secret
+    namespace: kube-system

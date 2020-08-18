@@ -8,6 +8,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 
 	"github.com/go-logr/logr"
+	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -28,58 +29,70 @@ func (r *SecretReconciler) Reconcile(pullSecret v1.ClusterPullSecret, namespaceN
 
 	secretKey := pullSecret.Name + "-registrycreds"
 
-	secret := &corev1.Secret{}
-	err := r.Client.Get(ctx, client.ObjectKey{Name: secretKey, Namespace: namespaceName}, secret)
-	if err != nil {
-		r.Log.Info(fmt.Sprintf("secret not found: %s.%s, %s", secretKey, namespaceName, err.Error()))
-
-		secret := &corev1.Secret{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      secretKey,
-				Namespace: namespaceName,
-			},
-			Data: pullSecret.Spec.Secret.Data,
-			Type: corev1.SecretTypeDockerConfigJson,
-		}
-
-		err = r.Client.Create(ctx, secret)
-		if err != nil {
-			r.Log.Info(fmt.Sprintf("can't create secret: %s.%s, %s", secretKey, namespaceName, err.Error()))
-		} else {
-			r.Log.Info(fmt.Sprintf("created secret: %s.%s", secretKey, namespaceName))
-			err = ctrl.SetControllerReference(&pullSecret, secret, r.Scheme)
-			if err != nil {
-				r.Log.Info(fmt.Sprintf("can't create owner reference: %s.%s, %s", secretKey, namespaceName, err.Error()))
-			}
-		}
+	if pullSecret.Spec.SecretRef == nil || pullSecret.Spec.SecretRef.Name == "" || pullSecret.Spec.SecretRef.Namespace == "" {
+		return fmt.Errorf("no valid secret ref found on ClusterPullSecret: %s.%s", pullSecret.Name, pullSecret.Namespace)
 	}
 
-	sa := &corev1.ServiceAccount{}
-	err = r.Client.Get(ctx, client.ObjectKey{Name: "default", Namespace: namespaceName}, sa)
-	if err != nil {
-		r.Log.Info(fmt.Sprintf("error getting SA in namespace: %s, %s", namespaceName, err.Error()))
+	seedSecret := &corev1.Secret{}
+	if err := r.Get(ctx,
+		client.ObjectKey{Name: pullSecret.Spec.SecretRef.Name, Namespace: pullSecret.Spec.SecretRef.Namespace},
+		seedSecret); err != nil {
+		r.Log.Info(fmt.Sprintf("%s", errors.Wrapf(err, "unable to fetch seedSecret %s.%s", pullSecret.Spec.SecretRef.Name, pullSecret.Spec.SecretRef.Namespace)))
 	} else {
-		r.Log.Info(fmt.Sprintf("Pull secrets: %v", sa.ImagePullSecrets))
-		appendSecret := false
-		if len(sa.ImagePullSecrets) == 0 {
-			appendSecret = true
-		} else {
-			found := false
-			for _, s := range sa.ImagePullSecrets {
-				if s.Name == secretKey {
-					found = true
+
+		nsSecret := &corev1.Secret{}
+		err := r.Client.Get(ctx, client.ObjectKey{Name: secretKey, Namespace: namespaceName}, nsSecret)
+		if err != nil {
+			r.Log.Info(fmt.Sprintf("secret not found: %s.%s, %s", secretKey, namespaceName, err.Error()))
+
+			nsSecret = &corev1.Secret{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      secretKey,
+					Namespace: namespaceName,
+				},
+				Data: seedSecret.Data,
+				Type: corev1.SecretTypeDockerConfigJson,
+			}
+
+			err = r.Client.Create(ctx, nsSecret)
+			if err != nil {
+				r.Log.Info(fmt.Sprintf("can't create secret: %s.%s, %s", secretKey, namespaceName, err.Error()))
+			} else {
+				r.Log.Info(fmt.Sprintf("created secret: %s.%s", secretKey, namespaceName))
+				err = ctrl.SetControllerReference(&pullSecret, nsSecret, r.Scheme)
+				if err != nil {
+					r.Log.Info(fmt.Sprintf("can't create owner reference: %s.%s, %s", secretKey, namespaceName, err.Error()))
 				}
 			}
-			appendSecret = !found
 		}
 
-		if appendSecret {
-			sa.ImagePullSecrets = append(sa.ImagePullSecrets, corev1.LocalObjectReference{
-				Name: secretKey,
-			})
-			err = r.Update(ctx, sa.DeepCopy())
-			if err != nil {
-				r.Log.Info(fmt.Sprintf("unable to append pull secret to service account: %s", err))
+		sa := &corev1.ServiceAccount{}
+		err = r.Client.Get(ctx, client.ObjectKey{Name: "default", Namespace: namespaceName}, sa)
+		if err != nil {
+			r.Log.Info(fmt.Sprintf("error getting SA in namespace: %s, %s", namespaceName, err.Error()))
+		} else {
+			r.Log.Info(fmt.Sprintf("Pull secrets: %v", sa.ImagePullSecrets))
+			appendSecret := false
+			if len(sa.ImagePullSecrets) == 0 {
+				appendSecret = true
+			} else {
+				found := false
+				for _, s := range sa.ImagePullSecrets {
+					if s.Name == secretKey {
+						found = true
+					}
+				}
+				appendSecret = !found
+			}
+
+			if appendSecret {
+				sa.ImagePullSecrets = append(sa.ImagePullSecrets, corev1.LocalObjectReference{
+					Name: secretKey,
+				})
+				err = r.Update(ctx, sa.DeepCopy())
+				if err != nil {
+					r.Log.Info(fmt.Sprintf("unable to append pull secret to service account: %s", err))
+				}
 			}
 		}
 	}

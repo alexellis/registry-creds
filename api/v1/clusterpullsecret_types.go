@@ -17,7 +17,6 @@ limitations under the License.
 package v1
 
 import (
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -26,7 +25,7 @@ import (
 
 // ClusterPullSecretSpec defines the desired state of ClusterPullSecret
 type ClusterPullSecretSpec struct {
-	Secret *corev1.Secret `json:"secret,omitempty"`
+	SecretRef *metav1.ObjectMeta `json:"secretRef,omitempty"`
 }
 
 // ClusterPullSecretStatus defines the observed state of ClusterPullSecret
