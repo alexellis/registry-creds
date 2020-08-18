@@ -4,7 +4,7 @@ This operator can be used to propagate a single ImagePullSecret to all namespace
 
 ### Why is this operator required?
 
-The primary reason for creating this operator, is to make it easier for users of Kubernetes to consume image from the Docker Hub. Docker's recent [pricing and rate-limiting announcement](https://www.docker.com/pricing) for the Docker Hub has meant that a pull secret is required to make use of images on the Docker Hub.
+The primary reason for creating this operator, is to make it easier for users of Kubernetes to consume images from the Docker Hub. Docker's recent [pricing and rate-limiting announcement](https://www.docker.com/pricing) for the Docker Hub has meant that a pull secret is required to make use of images on the Docker Hub.
 
 Pulling images with authentication is required in two scenarios:
 * To extend the Docker Hub anonymous pull limits to a practical number
