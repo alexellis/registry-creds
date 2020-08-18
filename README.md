@@ -11,6 +11,17 @@ The normal process is as follows:
 * Create a secret
 * Edit your service account, and add the name of the secret to `imagePullSecrets`
 
+## Status
+
+This is a very early, working prototype. Do not use it in production, you can create a test cluster very quickly with something like [KinD](https://kind.sigs.k8s.io/docs/user/quick-start/).
+
+Backlog:
+- [ ] Support alterations/updates to the primary `ClusterPullSecret`
+- [ ] Add Docker image for `x86_64`
+- [ ] Add multi-arch Docker image for `x86_64` and arm
+- [ ] Add helm chart / kustomize
+- [ ] Add one-liner with an arkade app - `arkade install registry-creds --username $USERNAME --password $PASSWORD`
+
 ## Installation
 
 Only development instructions are available at this time
