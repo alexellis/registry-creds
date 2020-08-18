@@ -56,16 +56,17 @@ func (r *SecretReconciler) Reconcile(pullSecret v1.ClusterPullSecret, namespaceN
 					Data: seedSecret.Data,
 					Type: corev1.SecretTypeDockerConfigJson,
 				}
+				err = ctrl.SetControllerReference(&pullSecret, nsSecret, r.Scheme)
+				if err != nil {
+					r.Log.Info(fmt.Sprintf("can't create owner reference: %s.%s, %s", secretKey, namespaceName, err.Error()))
+				}
 
 				err = r.Client.Create(ctx, nsSecret)
 				if err != nil {
 					r.Log.Info(fmt.Sprintf("can't create secret: %s.%s, %s", secretKey, namespaceName, err.Error()))
 				} else {
 					r.Log.Info(fmt.Sprintf("created secret: %s.%s", secretKey, namespaceName))
-					err = ctrl.SetControllerReference(&pullSecret, nsSecret, r.Scheme)
-					if err != nil {
-						r.Log.Info(fmt.Sprintf("can't create owner reference: %s.%s, %s", secretKey, namespaceName, err.Error()))
-					}
+
 				}
 			}
 		} else {

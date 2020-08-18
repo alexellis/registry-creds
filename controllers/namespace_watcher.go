@@ -37,7 +37,7 @@ func (r *NamespaceWatcher) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		r.Log.Info(fmt.Sprintf("%s", errors.Wrap(err, "unable to fetch pullSecret")))
 	} else {
 		namespaceName := namespace.Name
-		r.Log.Info(fmt.Sprintf("need to work on: %s", namespaceName))
+		r.Log.Info(fmt.Sprintf("detected a change in namespace: %s", namespaceName))
 
 		pullSecretList := &opsv1.ClusterPullSecretList{}
 		err := r.Client.List(ctx, pullSecretList)
