@@ -25,13 +25,14 @@ Backlog (done):
 - [x] Watch new namespaces and create new secrets
 - [x] Update the ImagePullSecret list for the default ServiceAccount in each namespace
 - [x] Add an exclude annotation for certain namespaces `alexellis.io/registry-creds.ignore`
+- [x] Add Docker image for `x86_64`
+- [x] Test and update kustomize
 
 Todo:
 - [ ] Use `apierrors.IsNotFound(err)` everywhere instead of assuming an error means not found
 - [ ] Support alterations/updates to the primary `ClusterPullSecret`
-- [ ] Add Docker image for `x86_64`
 - [ ] Add multi-arch Docker image for `x86_64` and arm
-- [ ] Add helm chart / kustomize
+- [ ] Add helm chart
 - [ ] Add one-liner with an arkade app - `arkade install registry-creds --username $USERNAME --password $PASSWORD`
 
 ## Installation
@@ -48,6 +49,8 @@ cd registry-creds
 make install
 make run
 ```
+
+> Note, you can also run `make install deploy` to try running in-cluster.
 
 ## Usage
 

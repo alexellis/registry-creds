@@ -32,6 +32,9 @@ type ClusterPullSecretReconciler struct {
 // +kubebuilder:rbac:groups=core,resources=secrets,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=core,resources=secrets/status,verbs=get;update;patch
 
+// +kubebuilder:rbac:groups=core,resources=serviceaccounts,verbs=get;list;watch;update;patch
+// +kubebuilder:rbac:groups=core,resources=serviceaccounts/status,verbs=get;update;patch
+
 func (r *ClusterPullSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
 	_ = r.Log.WithValues("clusterpullsecret", req.NamespacedName)
