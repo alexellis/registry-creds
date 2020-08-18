@@ -26,6 +26,7 @@ Backlog (done):
 - [x] Update the ImagePullSecret list for the default ServiceAccount in each namespace
 
 Todo:
+- [ ] Use `apierrors.IsNotFound(err)` everywhere instead of assuming an error means not found
 - [ ] Support alterations/updates to the primary `ClusterPullSecret`
 - [ ] Add Docker image for `x86_64`
 - [ ] Add multi-arch Docker image for `x86_64` and arm

@@ -10,6 +10,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -43,27 +44,32 @@ func (r *SecretReconciler) Reconcile(pullSecret v1.ClusterPullSecret, namespaceN
 		nsSecret := &corev1.Secret{}
 		err := r.Client.Get(ctx, client.ObjectKey{Name: secretKey, Namespace: namespaceName}, nsSecret)
 		if err != nil {
-			r.Log.Info(fmt.Sprintf("secret not found: %s.%s, %s", secretKey, namespaceName, err.Error()))
+			if apierrors.IsNotFound(err) {
 
-			nsSecret = &corev1.Secret{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      secretKey,
-					Namespace: namespaceName,
-				},
-				Data: seedSecret.Data,
-				Type: corev1.SecretTypeDockerConfigJson,
-			}
+				r.Log.Info(fmt.Sprintf("secret not found: %s.%s, %s", secretKey, namespaceName, err.Error()))
 
-			err = r.Client.Create(ctx, nsSecret)
-			if err != nil {
-				r.Log.Info(fmt.Sprintf("can't create secret: %s.%s, %s", secretKey, namespaceName, err.Error()))
-			} else {
-				r.Log.Info(fmt.Sprintf("created secret: %s.%s", secretKey, namespaceName))
-				err = ctrl.SetControllerReference(&pullSecret, nsSecret, r.Scheme)
+				nsSecret = &corev1.Secret{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      secretKey,
+						Namespace: namespaceName,
+					},
+					Data: seedSecret.Data,
+					Type: corev1.SecretTypeDockerConfigJson,
+				}
+
+				err = r.Client.Create(ctx, nsSecret)
 				if err != nil {
-					r.Log.Info(fmt.Sprintf("can't create owner reference: %s.%s, %s", secretKey, namespaceName, err.Error()))
+					r.Log.Info(fmt.Sprintf("can't create secret: %s.%s, %s", secretKey, namespaceName, err.Error()))
+				} else {
+					r.Log.Info(fmt.Sprintf("created secret: %s.%s", secretKey, namespaceName))
+					err = ctrl.SetControllerReference(&pullSecret, nsSecret, r.Scheme)
+					if err != nil {
+						r.Log.Info(fmt.Sprintf("can't create owner reference: %s.%s, %s", secretKey, namespaceName, err.Error()))
+					}
 				}
 			}
+		} else {
+			return errors.Wrap(err, "unexpected error checking for the namespaced pull secret")
 		}
 
 		sa := &corev1.ServiceAccount{}
