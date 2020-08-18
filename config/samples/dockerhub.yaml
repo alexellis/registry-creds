@@ -1,0 +1,9 @@
+apiVersion: ops.alexellis.io/v1
+kind: ClusterPullSecret
+metadata:
+  name: dockerhub
+spec:
+  secret:
+    data:
+      .dockerconfigjson: see readme on how to generate this line
+    type: kubernetes.io/dockerconfigjson
