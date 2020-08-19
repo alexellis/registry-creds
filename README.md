@@ -39,7 +39,21 @@ Todo:
 
 Only development instructions are available at this time
 
-Get the pre-reqs: kubectl (`arkade get kubectl`) and [kustomize](https://github.com/kubernetes-sigs/kustomize/releases/tag/kustomize%2Fv3.5.4)
+You can use the [arkade project](https://get-arkade.dev) to get CLIs the easy way, or find your way to the releases page of each application required.
+
+If you don't have a local Kubernetes cluster, you can create one with k3d, or KinD
+
+```bash
+arkade get kind
+kind create cluster
+```
+
+Get the pre-reqs: kubectl and kustomize
+
+```bash
+arkade get kubectl
+arkade get kustomize
+```
 
 Install with:
 
