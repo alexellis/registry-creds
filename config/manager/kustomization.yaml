@@ -5,4 +5,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: alexellis2/registry-creds-controller
-  newTag: latest
+  newTag: 0.1.1

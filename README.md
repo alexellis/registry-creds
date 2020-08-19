@@ -33,17 +33,23 @@ Backlog (done):
 - [x] Add an exclude annotation for certain namespaces `alexellis.io/registry-creds.ignore`
 - [x] Add Docker image for `x86_64`
 - [x] Test and update kustomize
+- [x] Add multi-arch Docker image for `x86_64` and arm
 
 Todo:
 - [ ] Use `apierrors.IsNotFound(err)` everywhere instead of assuming an error means not found
 - [ ] Support alterations/updates to the primary `ClusterPullSecret`
-- [ ] Add multi-arch Docker image for `x86_64` and arm
 - [ ] Add helm chart
 - [ ] Add one-liner with an arkade app - `arkade install registry-creds --username $USERNAME --password $PASSWORD`
 
 ## Installation
 
-Only development instructions are available at this time
+### Deploy to a cluster
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/alexellis/registry-creds/master/manifest.yaml
+```
+
+### Or make locally
 
 You can use the [arkade project](https://get-arkade.dev) to get CLIs the easy way, or find your way to the releases page of each application required.
 
@@ -138,3 +144,7 @@ Check the event-stream to see the image being pulled and started:
 ```
 kubectl get event -n openfaas-fn -w
 ```
+
+## Appendix
+
+See also [Terraform snippet for secret propagation](https://gist.github.com/phumberdroz/81885c01c2207d578c17635afce1b033) by Pierre Humberdroz

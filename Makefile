@@ -1,8 +1,9 @@
 
 # Image URL to use all building/pushing image targets
-IMG ?= alexellis2/registry-creds-controller:latest
+IMG ?= alexellis2/registry-creds-controller:0.1.1
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"
+export DOCKER_CLI_EXPERIMENTAL=enabled
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -38,6 +39,10 @@ deploy: manifests
 	cd config/manager && kustomize edit set image controller=${IMG}
 	kustomize build config/default | kubectl apply -f -
 
+shrinkwrap:
+	cd config/manager && kustomize edit set image controller=${IMG}
+	kustomize build config/default > mainfest.yaml
+
 # Generate manifests e.g. CRD, RBAC etc.
 manifests: controller-gen
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=registry-creds-role paths="./..." output:crd:artifacts:config=config/crd/bases
@@ -54,13 +59,21 @@ vet:
 generate: controller-gen
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
-# Build the docker image
-docker-build: test
-	docker build . -t ${IMG}
+.PHONY: docker-build # Build the docker image
+docker-build:
+	@docker buildx create --use --name=multiarch --node=multiarch && \
+	docker buildx build \
+		--output "type=docker,push=false" \
+		--tag $(IMG) \
+		.
 
-# Push the docker image
-docker-push:
-	docker push ${IMG}
+.PHONY: docker-publish # Push the docker image to the remote registry
+docker-publish:
+	@docker buildx create --use --name=multiarch --node=multiarch && \
+	docker buildx build \
+		--platform linux/amd64,linux/arm/v7,linux/arm64 \
+		--output "type=image,push=true" \
+		--tag $(IMG) .
 
 # find or download controller-gen
 # download controller-gen if necessary
