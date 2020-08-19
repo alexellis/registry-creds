@@ -47,11 +47,16 @@ Todo:
 
 ## Installation
 
+![Diagram](./diagram.jpg)
+
+* The operator requires CRUD permission on secrets within all namespaces, and uses a ClusterRole.
+* A custom resource is also installed called `ClusterPullSecret`, scoped to the global cluster level.
+* You'll create a "seed secret", which the ClusterPullSecret will point to
+* The operator will clone your seed secret to each namespace, and append it to the default ServiceAccount's imagePullSecrets list
+
 ### Deploy to a cluster
 
-Apply the YAML for the manifest. It requires CRUD permission on secrets within all namespaces, and uses a ClusterRole.
-
-A custom resource is also installed called ClusterPullSecret, scoped to the global cluster level. Read on for usage.
+Apply the YAML for the manifest.
 
 ```bash
 kubectl apply -f https://raw.githubusercontent.com/alexellis/registry-creds/master/mainfest.yaml
