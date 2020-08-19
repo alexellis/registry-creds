@@ -95,6 +95,31 @@ make run
 
 ## Usage
 
+### The easy way with `arkade`
+
+Create an environment file i.e. `~/.docker-creds`, so that you are not having to keep typing passwords in.
+
+```bash
+export DOCKER_USERNAME=username
+export DOCKER_PASSWORD=password
+export DOCKER_EMAIL=email
+
+# Optional
+export DOCKER_SERVER=""
+```
+
+Then run this command on any of your clusters
+
+```bash
+source ~/.docker-creds
+arkade install registry-creds \
+  --username "${DOCKER_USERNAME}" \
+  --password "${DOCKER_PASSWORD}" \
+  --email  "${DOCKER_EMAIL}"
+```
+
+> Optionally, you can also pass `--server`
+
 ### Create a seed secret and `ClusterPullSecret`
 
 To use this operator create a `ClusterPullSecret` CustomResource and apply it to your cluster.
