@@ -23,7 +23,11 @@ The normal process is as follows, which becomes tedious and repetitive when you 
 
 ## Status
 
-This is a very early, working prototype. Do not use it in production, you can create a test cluster very quickly with something like [KinD](https://kind.sigs.k8s.io/docs/user/quick-start/).
+This is a very early, working prototype, do not use it in production. When you move to production, you can use something like Flux, Argo or Terraform (see appendix) for managing secrets across namespaces.
+
+The primary purpose of this tool is to ease the every-day lives of developers and new-comers to Kubernetes.
+
+You can create a test cluster very quickly with something like [KinD](https://kind.sigs.k8s.io/docs/user/quick-start/) to try it out.
 
 Backlog (done):
 - [x] Create secrets in each namespace at start-up
@@ -45,8 +49,12 @@ Todo:
 
 ### Deploy to a cluster
 
+Apply the YAML for the manifest. It requires CRUD permission on secrets within all namespaces, and uses a ClusterRole.
+
+A custom resource is also installed called ClusterPullSecret, scoped to the global cluster level. Read on for usage.
+
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/alexellis/registry-creds/master/manifest.yaml
+kubectl apply -f https://raw.githubusercontent.com/alexellis/registry-creds/master/mainfest.yaml
 ```
 
 ### Or make locally
@@ -80,9 +88,11 @@ make run
 
 ## Usage
 
+### Create a seed secret and `ClusterPullSecret`
+
 To use this operator create a `ClusterPullSecret` CustomResource and apply it to your cluster.
 
-Create a secret so that it can be referenced by the ClusterPullSecret. You can customise the name, and namespace as per your own preference.
+Create a "seed" secret so that it can be referenced by the ClusterPullSecret. You can customise the name, and namespace as per your own preference.
 
 ```bash
 export USERNAME=username
@@ -111,29 +121,54 @@ spec:
     namespace: kube-system
 ```
 
-## Testing it out
+### Rotate your seed secret and `ClusterPullSecret`
 
-Do you want to see it all in action, but don't have time to waste? You're in luck.
+If you want to update your `ClusterPullSecret`, then update your main "seed" secret, delete the `ClusterPullSecret` entry, and create it again. The owner references will garbage collect the older secrets and re-create them again.
 
-You can use the [arkade project](https://get-arkade.dev) to install a self-hosted registry, with authentication enabled and TLS.
+### Exclude a namespace from being updated
+
+Disable:
 
 ```bash
+kubectl create ns alex
+kubectl annotate ns alex alexellis.io/registry-creds.ignore=1
+```
+
+Enable:
+
+```bash
+kubectl annotate ns alex alexellis.io/registry-creds.ignore=0 --overwrite
+```
+
+## Testing it out
+
+Do you want to see it all in action, but don't have time to waste? You're in luck, [OpenFaaS](https://www.openfaas.com/) provides a very easy to use workflow for creating a quick Docker image that servers HTTP traffic, and that can be deployed to Kubernetes.
+
+The easiest way to test the controller is with a private image on the Docker Hub, but you can also use the [arkade project](https://get-arkade.dev) to install a self-hosted registry, with authentication enabled and TLS.
+
+```bash
+arkade install ingress-nginx
+arkade install cert-manager
+
 arkade install docker-registry
 arkade install docker-registry-ingress \
  --email me@example.com \
  --domain reg.example.com
 ```
 
-Then go ahead and deploy something like OpenFaaS, create a function, and push it to your registry:
+Run the above on a computer with a public IP, or use the [inlets-operator](https://github.com/inlets/inlets-operator) to expose your local registry on the Internet, and to get a TLS certificate for it.
+
+Then go ahead and deploy something like OpenFaaS, create a function, and push it to your registry.
 
 ```bash
-arkade install openfaas
+# Get the OpenFaaS CLI, and put it in `PATH`
 arkade get faas-cli
 
-# Follow the login instructions
+# Install openfaas, and follow the login instructions
+arkade install openfaas
 
+# Create a new function and push it to your registry
 faas-cli new --lang go --prefix reg.example.com/functions awesome-api
-
 faas-cli up -f awesome-api.yml
 ```
 
@@ -141,10 +176,26 @@ You'll see `reg.example.com/functions/awesome-api:latest` being built, pushed an
 
 Check the event-stream to see the image being pulled and started:
 
-```
+```bash
 kubectl get event -n openfaas-fn -w
+
+LAST SEEN   TYPE     REASON              OBJECT                      MESSAGE
+8s          Normal   Scheduled           pod/api-577d87c687-knd54    Successfully assigned openfaas-fn/api-577d87c687-knd54 to kind-control-plane
+7s          Normal   Pulling             pod/api-577d87c687-knd54    Pulling image "alexellis2/http-api"
+8s          Normal   SuccessfulCreate    replicaset/api-577d87c687   Created pod: api-577d87c687-knd54
+8s          Normal   ScalingReplicaSet   deployment/api              Scaled up replica set api-577d87c687 to 1
+0s          Normal   Pulled              pod/api-577d87c687-knd54    Successfully pulled image "alexellis2/http-api"
+0s          Normal   Created             pod/api-577d87c687-knd54    Created container api
+0s          Normal   Started             pod/api-577d87c687-knd54    Started container api
 ```
 
 ## Appendix
 
-See also [Terraform snippet for secret propagation](https://gist.github.com/phumberdroz/81885c01c2207d578c17635afce1b033) by Pierre Humberdroz
+Terraform:
+
+* [Snippet to imperatively apply a secret throughout your cluster](https://gist.github.com/phumberdroz/81885c01c2207d578c17635afce1b033) by Pierre Humberdroz
+
+Tools to manage Kubernetes configuration, declaratively:
+
+* [ArgoCD](https://argoproj.github.io/argo-cd/) - install via `arkade install argocd`
+* [Flux](https://fluxcd.io)
