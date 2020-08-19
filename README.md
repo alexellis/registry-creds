@@ -112,6 +112,12 @@ Then run this command on any of your clusters
 
 ```bash
 source ~/.docker-creds
+arkade install registry-creds --from-env
+```
+
+Or specify each flag:
+
+```bash
 arkade install registry-creds \
   --username "${DOCKER_USERNAME}" \
   --password "${DOCKER_PASSWORD}" \
