@@ -49,6 +49,8 @@ Todo:
 
 ![Diagram](./diagram.jpg)
 
+> Conceptual diagram: registry-creds operator
+
 * The operator requires CRUD permission on secrets within all namespaces, and uses a ClusterRole.
 * A custom resource is also installed called `ClusterPullSecret`, scoped to the global cluster level.
 * You'll create a "seed secret", which the ClusterPullSecret will point to
