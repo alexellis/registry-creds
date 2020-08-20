@@ -4,10 +4,10 @@ This operator can be used to propagate a single ImagePullSecret to all namespace
 
 ### Why is this operator required?
 
-The primary reason for creating this operator, is to make it easier for users of Kubernetes to consume images from the Docker Hub after [recent pricing and rate-limiting changes](https://www.docker.com/pricing) were brought in, an authenticated account is now required to pull images.
+The primary reason for creating this operator, is to make it easier for users of Kubernetes to consume images from the Docker Hub after [recent pricing and rate-limiting changes](https://www.docker.com/pricing) were announced. Starting November 1st, 2020, an authenticated account will be required to pull beyond these limits:
 
-* Unauthenticated users: 100 layers / 6 hours
-* Authenticated users: 200 layers / 6 hours
+* Unauthenticated users: 100 images / 6 hours
+* Authenticated users: 200 images / 6 hours
 * Paying, authenticated users: unlimited downloads
 
 See also: [Docker Hub rate limits & pricing](https://www.docker.com/pricing)
