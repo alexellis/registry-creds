@@ -6,11 +6,13 @@ This operator can be used to propagate a single ImagePullSecret to all namespace
 
 The primary reason for creating this operator, is to make it easier for users of Kubernetes to consume images from the Docker Hub after [recent pricing and rate-limiting changes](https://www.docker.com/pricing) were brought in, an authenticated account is now required to pull images.
 
-* Unauthenticated users: 100 layers / 6 hours
-* Authenticated users: 200 layers / 6 hours
+These are the limits as understood at time of writing:
+
+* Unauthenticated users: 100 pulls / 6 hours
+* Authenticated users: 200 pulls / 6 hours
 * Paying, authenticated users: unlimited downloads
 
-See also: [Docker Hub rate limits & pricing](https://www.docker.com/pricing)
+Read also: [Docker Hub rate limits & pricing](https://www.docker.com/pricing)
 
 Pulling images with authentication is required in two scenarios:
 * To extend the Docker Hub anonymous pull limits to a practical number
