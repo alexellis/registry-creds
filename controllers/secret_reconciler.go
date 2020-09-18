@@ -41,7 +41,7 @@ func (r *SecretReconciler) Reconcile(pullSecret v1.ClusterPullSecret, namespaceN
 	}
 
 	r.Log.Info(fmt.Sprintf("Getting SA for: %v", namespaceName))
-	secretKey := pullSecret.Name + "-credentials"
+	secretKey := pullSecret.Name + "-registrycreds"
 
 	if pullSecret.Spec.SecretRef == nil || pullSecret.Spec.SecretRef.Name == "" || pullSecret.Spec.SecretRef.Namespace == "" {
 		return fmt.Errorf("no valid secret ref found on ClusterPullSecret: %s.%s", pullSecret.Name, pullSecret.Namespace)
