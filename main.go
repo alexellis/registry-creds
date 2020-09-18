@@ -72,6 +72,18 @@ func main() {
 		Scheme: mgr.GetScheme(),
 	}
 
+	serviceAccountReconciler := &controllers.ServiceAccountReconciler{
+		Client: mgr.GetClient(),
+		Log:    ctrl.Log.WithName("controllers").WithName("ClusterPullSecret"),
+		Scheme: mgr.GetScheme(),
+	}
+
+	namespaceReconciler := &controllers.NamespaceReconciler{
+		Client: mgr.GetClient(),
+		Log:    ctrl.Log.WithName("controllers").WithName("ClusterPullSecret"),
+		Scheme: mgr.GetScheme(),
+	}
+
 	if err = (&controllers.ClusterPullSecretReconciler{
 		Client:           mgr.GetClient(),
 		Log:              ctrl.Log.WithName("controllers").WithName("ClusterPullSecret"),
@@ -84,12 +96,23 @@ func main() {
 	// +kubebuilder:scaffold:builder
 
 	if err = (&controllers.NamespaceWatcher{
-		Client:           mgr.GetClient(),
-		Log:              ctrl.Log.WithName("controllers").WithName("Namespace"),
-		Scheme:           mgr.GetScheme(),
-		SecretReconciler: secretReconciler,
+		Client:              mgr.GetClient(),
+		Log:                 ctrl.Log.WithName("controllers").WithName("Namespace"),
+		Scheme:              mgr.GetScheme(),
+		NamespaceReconciler: namespaceReconciler,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create watcher", "watcher", "Namespace")
+		os.Exit(1)
+	}
+	// +kubebuilder:scaffold:builder
+
+	if err = (&controllers.ServiceAccountWatcher{
+		Client:                   mgr.GetClient(),
+		Log:                      ctrl.Log.WithName("controllers").WithName("ServiceAccount"),
+		Scheme:                   mgr.GetScheme(),
+		ServiceAccountReconciler: serviceAccountReconciler,
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create watcher", "watcher", "ServiceAccount")
 		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder

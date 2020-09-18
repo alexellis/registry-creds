@@ -20,13 +20,10 @@ import (
 // NamespaceWatcher watches namespaces for changes
 type NamespaceWatcher struct {
 	client.Client
-	Log              logr.Logger
-	Scheme           *runtime.Scheme
-	SecretReconciler *SecretReconciler
+	Log                 logr.Logger
+	Scheme              *runtime.Scheme
+	NamespaceReconciler *NamespaceReconciler
 }
-
-// +kubebuilder:rbac:groups=core,resources=namespaces,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=core,resources=namespaces/status,verbs=get;update;patch
 
 func (r *NamespaceWatcher) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
@@ -45,7 +42,7 @@ func (r *NamespaceWatcher) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			r.Log.Info(fmt.Sprintf("unable to list ClusterPullSecrets, %s", err.Error()))
 		} else {
 			for _, pullSecret := range pullSecretList.Items {
-				err := r.SecretReconciler.Reconcile(pullSecret, namespaceName)
+				err := r.NamespaceReconciler.Reconcile(pullSecret, namespaceName)
 				if err != nil {
 					r.Log.Info(fmt.Sprintf("error reconciling namespace: %s with cluster pull secret: %s", namespaceName, pullSecret.Name))
 				}
