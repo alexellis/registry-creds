@@ -42,10 +42,26 @@ func (r *ClusterPullSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, 
 	var pullSecret v1.ClusterPullSecret
 	if err := r.Get(ctx, req.NamespacedName, &pullSecret); err != nil {
 		r.Log.Info(fmt.Sprintf("%s\n", errors.Wrap(err, "unable to fetch pullSecret")))
+
+		serviceaccounts := &corev1.ServiceAccountList{}
+		r.Client.List(ctx, serviceaccounts)
+		r.Log.Info(fmt.Sprintf("Found %d service accounts", len(serviceaccounts.Items)))
+
+		// secret already removed, remove reference from all service accounts
+		for _, serviceaccount := range serviceaccounts.Items {
+			serviceaccountName := serviceaccount.Name
+			namespaceName := serviceaccount.Namespace
+			r.Log.Info(fmt.Sprintf("Reconciling service account: %s/%s", namespaceName, serviceaccountName))
+			err := r.SecretReconciler.RemoveRef(req.NamespacedName.Name, namespaceName, serviceaccountName)
+			if err != nil {
+				r.Log.Info(fmt.Sprintf("Found error: %s", err.Error()))
+			}
+		}
 	} else {
 
 		r.Log.Info(fmt.Sprintf("Found: %s\n", pullSecret.Name))
 
+		//add secret to namespaces
 		namespaces := &corev1.NamespaceList{}
 		r.Client.List(ctx, namespaces)
 
@@ -54,6 +70,20 @@ func (r *ClusterPullSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, 
 		for _, namespace := range namespaces.Items {
 			namespaceName := namespace.Name
 			err := r.SecretReconciler.Reconcile(pullSecret, namespaceName)
+			if err != nil {
+				r.Log.Info(fmt.Sprintf("Found error: %s", err.Error()))
+			}
+		}
+
+		//add secret to service accounts
+		serviceaccounts := &corev1.ServiceAccountList{}
+		r.Client.List(ctx, serviceaccounts)
+		r.Log.Info(fmt.Sprintf("Found %d service accounts", len(serviceaccounts.Items)))
+
+		for _, serviceaccount := range serviceaccounts.Items {
+			serviceaccountName := serviceaccount.Name
+			namespaceName := serviceaccount.Namespace
+			err := r.SecretReconciler.AppendToServiceAccount(pullSecret, namespaceName, serviceaccountName)
 			if err != nil {
 				r.Log.Info(fmt.Sprintf("Found error: %s", err.Error()))
 			}

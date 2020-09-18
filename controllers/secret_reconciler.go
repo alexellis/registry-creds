@@ -23,7 +23,7 @@ type SecretReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-// Reconcile applies an PullSecret to a Namespace
+// Reconcile applies a PullSecret to a Namespace
 func (r *SecretReconciler) Reconcile(pullSecret v1.ClusterPullSecret, namespaceName string) error {
 	ctx := context.Background()
 	const ignoreAnnotation = "alexellis.io/registry-creds.ignore"
@@ -41,7 +41,7 @@ func (r *SecretReconciler) Reconcile(pullSecret v1.ClusterPullSecret, namespaceN
 	}
 
 	r.Log.Info(fmt.Sprintf("Getting SA for: %v", namespaceName))
-	secretKey := pullSecret.Name + "-registrycreds"
+	secretKey := pullSecret.Name + "-credentials"
 
 	if pullSecret.Spec.SecretRef == nil || pullSecret.Spec.SecretRef.Name == "" || pullSecret.Spec.SecretRef.Namespace == "" {
 		return fmt.Errorf("no valid secret ref found on ClusterPullSecret: %s.%s", pullSecret.Name, pullSecret.Namespace)
@@ -85,34 +85,119 @@ func (r *SecretReconciler) Reconcile(pullSecret v1.ClusterPullSecret, namespaceN
 		} else {
 			return errors.Wrap(err, "unexpected error checking for the namespaced pull secret")
 		}
+	}
+	return nil
+}
 
-		sa := &corev1.ServiceAccount{}
-		err = r.Client.Get(ctx, client.ObjectKey{Name: "default", Namespace: namespaceName}, sa)
-		if err != nil {
-			r.Log.Info(fmt.Sprintf("error getting SA in namespace: %s, %s", namespaceName, err.Error()))
+// RemoveRef removes an PullSecret from a service account
+func (r *SecretReconciler) RemoveRef(secretName string, namespaceName string, serviceaccountName string) error {
+	ctx := context.Background()
+	const ignoreAnnotation = "alexellis.io/registry-creds.ignore"
+
+	targetNamespace := &corev1.Namespace{}
+	if err := r.Get(ctx, client.ObjectKey{Name: namespaceName}, targetNamespace); err != nil {
+		wrappedErr := errors.Wrapf(err, "unable to fetch namespace for introspection:%s", namespaceName)
+		r.Log.Info(wrappedErr.Error())
+		return wrappedErr
+	}
+
+	if targetNamespace.Annotations[ignoreAnnotation] == "1" || strings.ToLower(targetNamespace.Annotations[ignoreAnnotation]) == "true" {
+		r.Log.Info(fmt.Sprintf("ignoring namespace: %s", namespaceName))
+		return nil
+	}
+
+	r.Log.Info(fmt.Sprintf("Getting SA for: %v", namespaceName))
+	secretKey := secretName + "-credentials"
+
+	sa := &corev1.ServiceAccount{}
+	err := r.Client.Get(ctx, client.ObjectKey{Name: serviceaccountName, Namespace: namespaceName}, sa)
+	if err != nil {
+		r.Log.Info(fmt.Sprintf("error getting SA in namespace: %s %s, %s", serviceaccountName, namespaceName, err.Error()))
+	} else {
+		r.Log.Info(fmt.Sprintf("Before pull secrets: %v", sa.ImagePullSecrets))
+		r.Log.Info(fmt.Sprintf("looking for: %s", secretKey))
+		removeSecret := false
+		index := -1
+		secretIndex := 0
+		if len(sa.ImagePullSecrets) == 0 {
+			removeSecret = false
 		} else {
-			r.Log.Info(fmt.Sprintf("Pull secrets: %v", sa.ImagePullSecrets))
-			appendSecret := false
-			if len(sa.ImagePullSecrets) == 0 {
-				appendSecret = true
-			} else {
-				found := false
-				for _, s := range sa.ImagePullSecrets {
-					if s.Name == secretKey {
-						found = true
-					}
+			found := false
+			for _, s := range sa.ImagePullSecrets {
+				index++
+				r.Log.Info(fmt.Sprintf("sa secret name for: %s", s.Name))
+				if s.Name == secretKey {
+					found = true
+					secretIndex = index
 				}
-				appendSecret = !found
 			}
+			removeSecret = found
+		}
 
-			if appendSecret {
-				sa.ImagePullSecrets = append(sa.ImagePullSecrets, corev1.LocalObjectReference{
-					Name: secretKey,
-				})
-				err = r.Update(ctx, sa.DeepCopy())
-				if err != nil {
-					r.Log.Info(fmt.Sprintf("unable to append pull secret to service account: %s", err))
+		r.Log.Info(fmt.Sprintf("SA values: %s, %s, %s", removeSecret, secretIndex, secretKey))
+
+		if removeSecret {
+			sa.ImagePullSecrets = append(sa.ImagePullSecrets[:secretIndex], sa.ImagePullSecrets[secretIndex+1:]...)
+			r.Log.Info(fmt.Sprintf("After pull secrets: %v", sa.ImagePullSecrets))
+			err = r.Update(ctx, sa.DeepCopy())
+			if err != nil {
+				r.Log.Info(fmt.Sprintf("unable to append pull secret to service account: %s", err))
+			}
+		}
+	}
+	return nil
+}
+
+// AppendToServiceAccount applies an PullSecret to a service account
+func (r *SecretReconciler) AppendToServiceAccount(pullSecret v1.ClusterPullSecret, namespaceName string, serviceaccountName string) error {
+	ctx := context.Background()
+	const ignoreAnnotation = "alexellis.io/registry-creds.ignore"
+
+	targetNamespace := &corev1.Namespace{}
+	if err := r.Get(ctx, client.ObjectKey{Name: namespaceName}, targetNamespace); err != nil {
+		wrappedErr := errors.Wrapf(err, "unable to fetch namespace for introspection:%s", namespaceName)
+		r.Log.Info(wrappedErr.Error())
+		return wrappedErr
+	}
+
+	if targetNamespace.Annotations[ignoreAnnotation] == "1" || strings.ToLower(targetNamespace.Annotations[ignoreAnnotation]) == "true" {
+		r.Log.Info(fmt.Sprintf("ignoring namespace: %s", namespaceName))
+		return nil
+	}
+
+	r.Log.Info(fmt.Sprintf("Getting SA for: %v", namespaceName))
+	secretKey := pullSecret.Name + "-credentials"
+
+	if pullSecret.Spec.SecretRef == nil || pullSecret.Spec.SecretRef.Name == "" || pullSecret.Spec.SecretRef.Namespace == "" {
+		return fmt.Errorf("no valid secret ref found on ClusterPullSecret: %s.%s", pullSecret.Name, pullSecret.Namespace)
+	}
+
+	sa := &corev1.ServiceAccount{}
+	err := r.Client.Get(ctx, client.ObjectKey{Name: serviceaccountName, Namespace: namespaceName}, sa)
+	if err != nil {
+		r.Log.Info(fmt.Sprintf("error getting SA in namespace: %s %s, %s", serviceaccountName, namespaceName, err.Error()))
+	} else {
+		r.Log.Info(fmt.Sprintf("Pull secrets: %v", sa.ImagePullSecrets))
+		appendSecret := false
+		if len(sa.ImagePullSecrets) == 0 {
+			appendSecret = true
+		} else {
+			found := false
+			for _, s := range sa.ImagePullSecrets {
+				if s.Name == secretKey {
+					found = true
 				}
+			}
+			appendSecret = !found
+		}
+
+		if appendSecret {
+			sa.ImagePullSecrets = append(sa.ImagePullSecrets, corev1.LocalObjectReference{
+				Name: secretKey,
+			})
+			err = r.Update(ctx, sa.DeepCopy())
+			if err != nil {
+				r.Log.Info(fmt.Sprintf("unable to append pull secret to service account: %s", err))
 			}
 		}
 	}
