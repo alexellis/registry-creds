@@ -140,7 +140,7 @@ export PW=mypassword
 export EMAIL=me@example.com
 
 kubectl create secret docker-registry registry-creds-secret \
-  --namespace kube-system
+  --namespace kube-system \
   --docker-username=$USERNAME \
   --docker-password=$PW \
   --docker-email=$EMAIL

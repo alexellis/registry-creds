@@ -30,26 +30,26 @@ type NamespaceWatcher struct {
 
 func (r *NamespaceWatcher) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
-	_ = r.Log.WithValues("namespace", req.NamespacedName)
+	log := r.Log.WithValues("namespace", req.NamespacedName)
 
 	var namespace corev1.Namespace
 	if err := r.Get(ctx, req.NamespacedName, &namespace); err != nil {
-		r.Log.Info(fmt.Sprintf("%s", errors.Wrap(err, "unable to fetch pullSecret")))
-	} else {
-		namespaceName := namespace.Name
-		r.Log.Info(fmt.Sprintf("detected a change in namespace: %s", namespaceName))
+		log.Info(fmt.Sprintf("%s", errors.Wrap(err, "unable to fetch namespace")))
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+	namespaceName := namespace.Name
+	log.Info(fmt.Sprintf("detected a change in namespace: %s", namespaceName))
 
-		pullSecretList := &opsv1.ClusterPullSecretList{}
-		err := r.Client.List(ctx, pullSecretList)
+	pullSecretList := &opsv1.ClusterPullSecretList{}
+	err := r.Client.List(ctx, pullSecretList)
+	if err != nil {
+		log.Info(fmt.Sprintf("unable to list ClusterPullSecrets, %s", err.Error()))
+		return ctrl.Result{}, err
+	}
+	for _, pullSecret := range pullSecretList.Items {
+		err := r.SecretReconciler.Reconcile(pullSecret, namespaceName)
 		if err != nil {
-			r.Log.Info(fmt.Sprintf("unable to list ClusterPullSecrets, %s", err.Error()))
-		} else {
-			for _, pullSecret := range pullSecretList.Items {
-				err := r.SecretReconciler.Reconcile(pullSecret, namespaceName)
-				if err != nil {
-					r.Log.Info(fmt.Sprintf("error reconciling namespace: %s with cluster pull secret: %s", namespaceName, pullSecret.Name))
-				}
-			}
+			log.Info(fmt.Sprintf("error reconciling namespace: %s with cluster pull secret: %s", namespaceName, pullSecret.Name))
 		}
 	}
 

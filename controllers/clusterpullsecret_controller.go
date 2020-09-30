@@ -37,30 +37,28 @@ type ClusterPullSecretReconciler struct {
 
 func (r *ClusterPullSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
-	_ = r.Log.WithValues("clusterpullsecret", req.NamespacedName)
+	log := r.Log.WithValues("clusterpullsecret", req.NamespacedName)
 
 	var pullSecret v1.ClusterPullSecret
 	if err := r.Get(ctx, req.NamespacedName, &pullSecret); err != nil {
-		r.Log.Info(fmt.Sprintf("%s\n", errors.Wrap(err, "unable to fetch pullSecret")))
-	} else {
-
-		r.Log.Info(fmt.Sprintf("Found: %s\n", pullSecret.Name))
-
-		namespaces := &corev1.NamespaceList{}
-		r.Client.List(ctx, namespaces)
-
-		r.Log.Info(fmt.Sprintf("Found %d namespaces", len(namespaces.Items)))
-
-		for _, namespace := range namespaces.Items {
-			namespaceName := namespace.Name
-			err := r.SecretReconciler.Reconcile(pullSecret, namespaceName)
-			if err != nil {
-				r.Log.Info(fmt.Sprintf("Found error: %s", err.Error()))
-			}
-		}
+		log.Info(fmt.Sprintf("%s\n", errors.Wrap(err, "unable to fetch pullSecret")))
+		return ctrl.Result{}, client.IgnoreNotFound(err)
 
 	}
+	log.Info(fmt.Sprintf("Found: %s\n", pullSecret.Name))
 
+	namespaces := &corev1.NamespaceList{}
+	r.Client.List(ctx, namespaces)
+
+	log.Info(fmt.Sprintf("Found %d namespaces", len(namespaces.Items)))
+
+	for _, namespace := range namespaces.Items {
+		namespaceName := namespace.Name
+		err := r.SecretReconciler.Reconcile(pullSecret, namespaceName)
+		if err != nil {
+			log.Info(fmt.Sprintf("Found error: %s", err.Error()))
+		}
+	}
 	return ctrl.Result{}, nil
 }
 
