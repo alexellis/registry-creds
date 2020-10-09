@@ -9,6 +9,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -49,14 +50,14 @@ func (r *ClusterPullSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, 
 
 		r.Log.Info(fmt.Sprintf("Found: %s\n", pullSecret.Name))
 
-		namespaces := &corev1.NamespaceList{}
-		r.Client.List(ctx, namespaces)
+		serviceaccounts := &corev1.ServiceAccountList{}
+		r.Client.List(ctx, serviceaccounts)
 
-		r.Log.Info(fmt.Sprintf("Found %d namespaces", len(namespaces.Items)))
+		r.Log.Info(fmt.Sprintf("Found %d ServiceAccounts", len(serviceaccounts.Items)))
 
-		for _, namespace := range namespaces.Items {
-			namespaceName := namespace.Name
-			err := r.SecretReconciler.Reconcile(pullSecret, namespaceName)
+		for _, serviceaccount := range serviceaccounts.Items {
+			namespaced := types.NamespacedName{Name: serviceaccount.Name, Namespace: serviceaccount.Namespace}
+			err := r.SecretReconciler.Reconcile(pullSecret, namespaced)
 			if err != nil {
 				r.Log.Info(fmt.Sprintf("Found error: %s", err.Error()))
 			}

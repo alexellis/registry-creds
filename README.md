@@ -184,6 +184,23 @@ Enable:
 kubectl annotate ns alex alexellis.io/registry-creds.ignore=0 --overwrite
 ```
 
+### Include additional Service Accounts
+
+Should you have additional Service Accounts within a namespace, you can allocate the pull secret by way of annotating the service account with `alexellis.io/registry-creds.include` with the value of the `ClusterPullSecret` in question.
+
+Enable:
+
+```bash
+kubectl create serviceaccount alex
+kubectl annotate serviceaccount alex alexellis.io/registry-creds.include=dockerhub
+```
+
+Disable:
+
+```bash
+kubectl annotate serviceaccount alex alexellis.io/registry-creds.include-
+```
+
 ## Testing it out
 
 Do you want to see it all in action, but don't have time to waste? You're in luck, [OpenFaaS](https://www.openfaas.com/) provides a very easy to use workflow for creating a quick Docker image that servers HTTP traffic, and that can be deployed to Kubernetes.

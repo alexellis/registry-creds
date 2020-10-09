@@ -11,6 +11,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -35,26 +36,34 @@ func (r *NamespaceWatcher) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 	var namespace corev1.Namespace
 	if err := r.Get(ctx, req.NamespacedName, &namespace); err != nil {
-		r.Log.Info(fmt.Sprintf("%s", errors.Wrap(err, "unable to fetch pullSecret")))
-		return ctrl.Result{}, nil
-	}
+		r.Log.Info(fmt.Sprintf("%s", errors.Wrap(err, "unable to fetch namespace")))
+	} else {
+		namespaceName := namespace.Name
+		r.Log.Info(fmt.Sprintf("detected a change in namespace: %s", namespaceName))
 
-	r.Log.Info(fmt.Sprintf("detected a change in namespace: %s", namespace.Name))
-
-	pullSecretList := &opsv1.ClusterPullSecretList{}
-	err := r.Client.List(ctx, pullSecretList)
-	if err != nil {
-		r.Log.Info(fmt.Sprintf("unable to list ClusterPullSecrets, %s", err.Error()))
-		return ctrl.Result{}, nil
-	}
-
-	for _, pullSecret := range pullSecretList.Items {
-		err := r.SecretReconciler.Reconcile(pullSecret, namespace.Name)
+		listOptions := []client.ListOption{
+			client.InNamespace(namespaceName),
+		}
+		saList := &corev1.ServiceAccountList{}
+		err = r.List(ctx, saList, listOptions...)
 		if err != nil {
-			r.Log.Info(fmt.Sprintf("error reconciling namespace: %s with cluster pull secret: %s, error: %s",
-				namespace.Name,
-				pullSecret.Name,
-				err.Error()))
+			r.Log.Info(fmt.Sprintf("unable to list ServiceAccounts in Namespace: %s, %s", namespaceName, err.Error()))
+		} else {
+
+			for _, sa := range saList.Items {
+				pullSecretList := &opsv1.ClusterPullSecretList{}
+				err := r.Client.List(ctx, pullSecretList)
+				if err != nil {
+					r.Log.Info(fmt.Sprintf("unable to list ClusterPullSecrets, %s", err.Error()))
+				} else {
+					for _, pullSecret := range pullSecretList.Items {
+						err := r.SecretReconciler.Reconcile(pullSecret, types.NamespacedName{Name: sa.Name, Namespace: sa.Namespace})
+						if err != nil {
+							r.Log.Info(fmt.Sprintf("error reconciling namespace: %s with cluster pull secret: %s", namespaceName, pullSecret.Name))
+						}
+					}
+				}
+			}
 		}
 	}
 

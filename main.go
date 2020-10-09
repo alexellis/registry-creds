@@ -94,6 +94,16 @@ func main() {
 	}
 	// +kubebuilder:scaffold:builder
 
+	if err = (&controllers.ServiceAccountWatcher{
+		Client:           mgr.GetClient(),
+		Log:              ctrl.Log.WithName("controllers").WithName("ServiceAccount"),
+		Scheme:           mgr.GetScheme(),
+		SecretReconciler: secretReconciler,
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create watcher", "watcher", "ServiceAccount")
+		os.Exit(1)
+	}
+
 	setupLog.Info("starting manager")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
 		setupLog.Error(err, "problem running manager")
