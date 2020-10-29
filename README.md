@@ -42,12 +42,14 @@ Backlog (done):
 - [x] Add Docker image for `x86_64`
 - [x] Test and update kustomize
 - [x] Add multi-arch Docker image for `x86_64` and arm
+- [x] Add one-liner with an arkade app - `arkade install registry-creds --username $USERNAME --password $PASSWORD`
+- [x] ~~Add helm chart~~ - static manifest available instead
+- [x] Use `apierrors.IsNotFound(err)` everywhere instead of assuming an error means not found
 
 Todo:
-- [ ] Use `apierrors.IsNotFound(err)` everywhere instead of assuming an error means not found
-- [ ] Support alterations/updates to the primary `ClusterPullSecret`
-- [ ] Add helm chart
-- [ ] Add one-liner with an arkade app - `arkade install registry-creds --username $USERNAME --password $PASSWORD`
+- [ ] Remove pull secret reference from ServiceAccounts upon ClusterPullSecret deletion
+- [ ] Support additional ServiceAccounts beyond the `default` account in each namespace
+- [ ] Propagate alterations/updates to the primary `ClusterPullSecret` in each namespace when the secret value changes
 
 ## Installation
 
