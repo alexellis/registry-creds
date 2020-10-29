@@ -1,6 +1,7 @@
 
 # Image URL to use all building/pushing image targets
-IMG ?= alexellis2/registry-creds-controller:0.2.0
+TAG?=latest
+
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"
 export DOCKER_CLI_EXPERIMENTAL=enabled
@@ -36,11 +37,11 @@ uninstall: manifests
 
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 deploy: manifests
-	cd config/manager && kustomize edit set image controller=${IMG}
+	cd config/manager && kustomize edit set image controller=${TAG}
 	kustomize build config/default | kubectl apply -f -
 
 shrinkwrap:
-	cd config/manager && kustomize edit set image controller=${IMG}
+	cd config/manager && kustomize edit set image controller=${TAG}
 	kustomize build config/default > mainfest.yaml
 
 # Generate manifests e.g. CRD, RBAC etc.
@@ -64,7 +65,7 @@ docker-build:
 	@docker buildx create --use --name=multiarch --node=multiarch && \
 	docker buildx build \
 		--output "type=docker,push=false" \
-		--tag $(IMG) \
+		--tag $(TAG) \
 		.
 
 .PHONY: docker-publish # Push the docker image to the remote registry
@@ -73,7 +74,7 @@ docker-publish:
 	docker buildx build \
 		--platform linux/amd64,linux/arm/v7,linux/arm64 \
 		--output "type=image,push=true" \
-		--tag $(IMG) .
+		--tag $(TAG) .
 
 # find or download controller-gen
 # download controller-gen if necessary
