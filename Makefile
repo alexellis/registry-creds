@@ -37,11 +37,11 @@ uninstall: manifests
 
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 deploy: manifests
-	cd config/manager && kustomize edit set image controller=alexellis2/registry-creds-controller${TAG}
+	cd config/manager && kustomize edit set image controller=alexellis2/registry-creds-controller:$(TAG)
 	kustomize build config/default | kubectl apply -f -
 
 shrinkwrap:
-	cd config/manager && kustomize edit set image controller=alexellis2/registry-creds-controller${TAG}
+	cd config/manager && kustomize edit set image controller=alexellis2/registry-creds-controller:$(TAG)
 	kustomize build config/default > mainfest.yaml
 
 # Generate manifests e.g. CRD, RBAC etc.
@@ -65,7 +65,7 @@ docker-build:
 	@docker buildx create --use --name=multiarch --node=multiarch && \
 	docker buildx build \
 		--output "type=docker,push=false" \
-		--tag alexellis2/registry-creds-controller$(TAG) \
+		--tag alexellis2/registry-creds-controller:$(TAG) \
 		.
 
 .PHONY: docker-publish # Push the docker image to the remote registry
@@ -74,7 +74,7 @@ docker-publish:
 	docker buildx build \
 		--platform linux/amd64,linux/arm/v7,linux/arm64 \
 		--output "type=image,push=true" \
-		--tag alexellis2/registry-creds-controller$(TAG) .
+		--tag alexellis2/registry-creds-controller:$(TAG) .
 
 # find or download controller-gen
 # download controller-gen if necessary

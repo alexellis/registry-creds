@@ -1,13 +1,20 @@
 sudo: required
 language: go
 
+dist: bionic
+
 go:
 - "1.13"
 
 services:
 - docker
 
+before_script:
+  - ./hack/install-docker.sh
+  - ./hack/install-buildx.sh
+
 script:
+- docker buildx version
 - TAG=${TRAVIS_TAG:=latest} make docker-build
 
 before_deploy:
