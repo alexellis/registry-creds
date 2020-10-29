@@ -27,9 +27,9 @@ The normal process is as follows, which becomes tedious and repetitive when you 
 
 ## Status
 
-This is a very early, working prototype, do not use it in production. When you move to production, you can use something like Flux, Argo or Terraform (see appendix) for managing secrets across namespaces.
+The primary purpose of this tool is to ease the every-day lives of developers and new-comers to Kubernetes. When you move to production, you can use something like Flux, Argo or Terraform (see appendix) for managing secrets across namespaces.
 
-The primary purpose of this tool is to ease the every-day lives of developers and new-comers to Kubernetes.
+Disclaimer: see the [license of this project](/LICENSE) before deploying or using it.
 
 You can create a test cluster very quickly with something like [KinD](https://kind.sigs.k8s.io/docs/user/quick-start/) to try it out.
 
