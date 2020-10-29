@@ -243,3 +243,8 @@ Tools to manage Kubernetes configuration, declaratively:
 
 * [ArgoCD](https://argoproj.github.io/argo-cd/) - install via `arkade install argocd`
 * [Flux](https://fluxcd.io)
+
+Pull-through caching registries:
+
+* [Preparing Google Cloud deployments for Docker Hub pull request limits](https://cloud.google.com/blog/products/containers-kubernetes/mitigating-the-impact-of-new-docker-hub-pull-request-limits)
+* [Registry as a pull through cache](https://docs.docker.com/registry/recipes/mirror/)
