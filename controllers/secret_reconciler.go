@@ -17,104 +17,155 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+// SecretReconciler adds a secret to the default
+// ServiceAccount in each namespace, unless the namespace
+// has an ignore annotation
 type SecretReconciler struct {
 	client.Client
 	Log    logr.Logger
 	Scheme *runtime.Scheme
 }
 
-// Reconcile applies an PullSecret to a Namespace
-func (r *SecretReconciler) Reconcile(pullSecret v1.ClusterPullSecret, namespaceName string) error {
-	ctx := context.Background()
-	const ignoreAnnotation = "alexellis.io/registry-creds.ignore"
+const ignoreAnnotation = "alexellis.io/registry-creds.ignore"
 
-	targetNamespace := &corev1.Namespace{}
-	if err := r.Get(ctx, client.ObjectKey{Name: namespaceName}, targetNamespace); err != nil {
-		wrappedErr := errors.Wrapf(err, "unable to fetch namespace for introspection:%s", namespaceName)
+func ignoredNamespace(ns *corev1.Namespace) bool {
+	return ns.Annotations[ignoreAnnotation] == "1" || strings.ToLower(ns.Annotations[ignoreAnnotation]) == "true"
+}
+
+// Reconcile applies a number of ClusterPullSecrets to ServiceAccounts within
+// various valid namespaces. Namespaces can be ignored as required.
+func (r *SecretReconciler) Reconcile(clusterPullSecret v1.ClusterPullSecret, ns string) error {
+	ctx := context.Background()
+
+	targetNS := &corev1.Namespace{}
+	if err := r.Get(ctx, client.ObjectKey{Name: ns}, targetNS); err != nil {
+		wrappedErr := errors.Wrapf(err, "unable to fetch namespace: %s", ns)
 		r.Log.Info(wrappedErr.Error())
 		return wrappedErr
 	}
 
-	if targetNamespace.Annotations[ignoreAnnotation] == "1" || strings.ToLower(targetNamespace.Annotations[ignoreAnnotation]) == "true" {
-		r.Log.Info(fmt.Sprintf("ignoring namespace: %s", namespaceName))
+	if ignoredNamespace(targetNS) {
+		r.Log.Info(fmt.Sprintf("ignoring namespace %s due to annotation: %s ", ns, ignoreAnnotation))
 		return nil
 	}
 
-	r.Log.Info(fmt.Sprintf("Getting SA for: %v", namespaceName))
-	secretKey := pullSecret.Name + "-registrycreds"
+	r.Log.Info(fmt.Sprintf("Getting SA for: %s", ns))
 
-	if pullSecret.Spec.SecretRef == nil || pullSecret.Spec.SecretRef.Name == "" || pullSecret.Spec.SecretRef.Namespace == "" {
-		return fmt.Errorf("no valid secret ref found on ClusterPullSecret: %s.%s", pullSecret.Name, pullSecret.Namespace)
+	if clusterPullSecret.Spec.SecretRef == nil ||
+		clusterPullSecret.Spec.SecretRef.Name == "" ||
+		clusterPullSecret.Spec.SecretRef.Namespace == "" {
+		return fmt.Errorf("no valid secretRef found on ClusterPullSecret: %s.%s",
+			clusterPullSecret.Name,
+			clusterPullSecret.Namespace)
 	}
 
-	seedSecret := &corev1.Secret{}
+	pullSecret := &corev1.Secret{}
 	if err := r.Get(ctx,
-		client.ObjectKey{Name: pullSecret.Spec.SecretRef.Name, Namespace: pullSecret.Spec.SecretRef.Namespace},
-		seedSecret); err != nil {
-		r.Log.Info(fmt.Sprintf("%s", errors.Wrapf(err, "unable to fetch seedSecret %s.%s", pullSecret.Spec.SecretRef.Name, pullSecret.Spec.SecretRef.Namespace)))
+		client.ObjectKey{
+			Name:      clusterPullSecret.Spec.SecretRef.Name,
+			Namespace: clusterPullSecret.Spec.SecretRef.Namespace},
+		pullSecret); err != nil {
+		wrappedErr := errors.Wrapf(err, "unable to fetch seedSecret %s.%s", clusterPullSecret.Spec.SecretRef.Name, clusterPullSecret.Spec.SecretRef.Namespace)
+		r.Log.Info(fmt.Sprintf("%s", wrappedErr.Error()))
+		return wrappedErr
+	}
+
+	err := r.createSecret(clusterPullSecret, pullSecret, ns)
+	if err != nil {
+		r.Log.Info(err.Error())
+		return err
+	}
+
+	serviceAccountName := "default"
+	err = r.appendSecretToSA(clusterPullSecret, pullSecret, ns, serviceAccountName)
+	if err != nil {
+		r.Log.Info(err.Error())
+		return err
+	}
+
+	return nil
+}
+
+func (r *SecretReconciler) appendSecretToSA(clusterPullSecret v1.ClusterPullSecret, pullSecret *corev1.Secret, ns, serviceAccountName string) error {
+	ctx := context.Background()
+
+	secretKey := clusterPullSecret.Name + "-registrycreds"
+
+	sa := &corev1.ServiceAccount{}
+	err := r.Client.Get(ctx, client.ObjectKey{Name: serviceAccountName, Namespace: ns}, sa)
+	if err != nil {
+		r.Log.Info(fmt.Sprintf("error getting SA in namespace: %s, %s", ns, err.Error()))
+		wrappedErr := fmt.Errorf("unable to append pull secret to service account: %s", err)
+		r.Log.Info(wrappedErr.Error())
+		return wrappedErr
+	}
+
+	r.Log.Info(fmt.Sprintf("Pull secrets: %v", sa.ImagePullSecrets))
+	appendSecret := false
+	if len(sa.ImagePullSecrets) == 0 {
+		appendSecret = true
 	} else {
-
-		nsSecret := &corev1.Secret{}
-		err := r.Client.Get(ctx, client.ObjectKey{Name: secretKey, Namespace: namespaceName}, nsSecret)
-		if err != nil {
-			if apierrors.IsNotFound(err) {
-
-				r.Log.Info(fmt.Sprintf("secret not found: %s.%s, %s", secretKey, namespaceName, err.Error()))
-
-				nsSecret = &corev1.Secret{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      secretKey,
-						Namespace: namespaceName,
-					},
-					Data: seedSecret.Data,
-					Type: corev1.SecretTypeDockerConfigJson,
-				}
-				err = ctrl.SetControllerReference(&pullSecret, nsSecret, r.Scheme)
-				if err != nil {
-					r.Log.Info(fmt.Sprintf("can't create owner reference: %s.%s, %s", secretKey, namespaceName, err.Error()))
-				}
-
-				err = r.Client.Create(ctx, nsSecret)
-				if err != nil {
-					r.Log.Info(fmt.Sprintf("can't create secret: %s.%s, %s", secretKey, namespaceName, err.Error()))
-				} else {
-					r.Log.Info(fmt.Sprintf("created secret: %s.%s", secretKey, namespaceName))
-
-				}
+		found := false
+		for _, s := range sa.ImagePullSecrets {
+			if s.Name == secretKey {
+				found = true
 			}
-		} else {
+		}
+		appendSecret = !found
+	}
+
+	if appendSecret {
+		sa.ImagePullSecrets = append(sa.ImagePullSecrets, corev1.LocalObjectReference{
+			Name: secretKey,
+		})
+
+		err = r.Update(ctx, sa.DeepCopy())
+		if err != nil {
+			wrappedErr := fmt.Errorf("unable to append pull secret to service account: %s", err)
+			r.Log.Info(wrappedErr.Error())
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (r *SecretReconciler) createSecret(clusterPullSecret v1.ClusterPullSecret, pullSecret *corev1.Secret, ns string) error {
+	ctx := context.Background()
+
+	secretKey := clusterPullSecret.Name + "-registrycreds"
+
+	nsSecret := &corev1.Secret{}
+	err := r.Client.Get(ctx, client.ObjectKey{Name: secretKey, Namespace: ns}, nsSecret)
+	if err != nil {
+		notFound := apierrors.IsNotFound(err)
+		if !notFound {
 			return errors.Wrap(err, "unexpected error checking for the namespaced pull secret")
 		}
 
-		sa := &corev1.ServiceAccount{}
-		err = r.Client.Get(ctx, client.ObjectKey{Name: "default", Namespace: namespaceName}, sa)
-		if err != nil {
-			r.Log.Info(fmt.Sprintf("error getting SA in namespace: %s, %s", namespaceName, err.Error()))
-		} else {
-			r.Log.Info(fmt.Sprintf("Pull secrets: %v", sa.ImagePullSecrets))
-			appendSecret := false
-			if len(sa.ImagePullSecrets) == 0 {
-				appendSecret = true
-			} else {
-				found := false
-				for _, s := range sa.ImagePullSecrets {
-					if s.Name == secretKey {
-						found = true
-					}
-				}
-				appendSecret = !found
-			}
+		r.Log.Info(fmt.Sprintf("secret not found: %s.%s, %s", secretKey, ns, err.Error()))
 
-			if appendSecret {
-				sa.ImagePullSecrets = append(sa.ImagePullSecrets, corev1.LocalObjectReference{
-					Name: secretKey,
-				})
-				err = r.Update(ctx, sa.DeepCopy())
-				if err != nil {
-					r.Log.Info(fmt.Sprintf("unable to append pull secret to service account: %s", err))
-				}
-			}
+		nsSecret = &corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      secretKey,
+				Namespace: ns,
+			},
+			Data: pullSecret.Data,
+			Type: corev1.SecretTypeDockerConfigJson,
 		}
+
+		err = ctrl.SetControllerReference(&clusterPullSecret, nsSecret, r.Scheme)
+		if err != nil {
+			r.Log.Info(fmt.Sprintf("can't create owner reference: %s.%s, %s", secretKey, ns, err.Error()))
+		}
+
+		err = r.Client.Create(ctx, nsSecret)
+		if err != nil {
+			r.Log.Info(fmt.Sprintf("can't create secret: %s.%s, %s", secretKey, ns, err.Error()))
+			return err
+		}
+		r.Log.Info(fmt.Sprintf("created secret: %s.%s", secretKey, ns))
 	}
+
 	return nil
 }

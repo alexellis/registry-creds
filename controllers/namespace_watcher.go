@@ -17,7 +17,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-// NamespaceWatcher watches namespaces for changes
+// NamespaceWatcher watches namespaces for changes to
+// trigger ClusterPullSecret reconciliation.
 type NamespaceWatcher struct {
 	client.Client
 	Log              logr.Logger
@@ -30,26 +31,30 @@ type NamespaceWatcher struct {
 
 func (r *NamespaceWatcher) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
-	_ = r.Log.WithValues("namespace", req.NamespacedName)
+	r.Log.WithValues("namespace", req.NamespacedName)
 
 	var namespace corev1.Namespace
 	if err := r.Get(ctx, req.NamespacedName, &namespace); err != nil {
 		r.Log.Info(fmt.Sprintf("%s", errors.Wrap(err, "unable to fetch pullSecret")))
-	} else {
-		namespaceName := namespace.Name
-		r.Log.Info(fmt.Sprintf("detected a change in namespace: %s", namespaceName))
+		return ctrl.Result{}, nil
+	}
 
-		pullSecretList := &opsv1.ClusterPullSecretList{}
-		err := r.Client.List(ctx, pullSecretList)
+	r.Log.Info(fmt.Sprintf("detected a change in namespace: %s", namespace.Name))
+
+	pullSecretList := &opsv1.ClusterPullSecretList{}
+	err := r.Client.List(ctx, pullSecretList)
+	if err != nil {
+		r.Log.Info(fmt.Sprintf("unable to list ClusterPullSecrets, %s", err.Error()))
+		return ctrl.Result{}, nil
+	}
+
+	for _, pullSecret := range pullSecretList.Items {
+		err := r.SecretReconciler.Reconcile(pullSecret, namespace.Name)
 		if err != nil {
-			r.Log.Info(fmt.Sprintf("unable to list ClusterPullSecrets, %s", err.Error()))
-		} else {
-			for _, pullSecret := range pullSecretList.Items {
-				err := r.SecretReconciler.Reconcile(pullSecret, namespaceName)
-				if err != nil {
-					r.Log.Info(fmt.Sprintf("error reconciling namespace: %s with cluster pull secret: %s", namespaceName, pullSecret.Name))
-				}
-			}
+			r.Log.Info(fmt.Sprintf("error reconciling namespace: %s with cluster pull secret: %s, error: %s",
+				namespace.Name,
+				pullSecret.Name,
+				err.Error()))
 		}
 	}
 

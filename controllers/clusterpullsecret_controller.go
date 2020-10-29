@@ -18,7 +18,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-// ClusterPullSecretReconciler reconciles a ClusterPullSecret object
+// ClusterPullSecretReconciler reconciles a ClusterPullSecret
+// object to the default ServiceAccount of each namespace
 type ClusterPullSecretReconciler struct {
 	client.Client
 	Log              logr.Logger
@@ -35,6 +36,8 @@ type ClusterPullSecretReconciler struct {
 // +kubebuilder:rbac:groups=core,resources=serviceaccounts,verbs=get;list;watch;update;patch
 // +kubebuilder:rbac:groups=core,resources=serviceaccounts/status,verbs=get;update;patch
 
+// Reconcile applies a number of ClusterPullSecrets to the default ServiceAccount
+// within various valid namespaces. Namespaces can be ignored as required.
 func (r *ClusterPullSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
 	_ = r.Log.WithValues("clusterpullsecret", req.NamespacedName)
