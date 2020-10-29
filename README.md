@@ -1,5 +1,7 @@
 ## registry-creds operator
 
+[![Build Status](https://travis-ci.com/alexellis/registry-creds.svg?branch=master)](https://travis-ci.com/alexellis/registry-creds)
+
 This operator can be used to propagate a single ImagePullSecret to all namespaces within your cluster, so that images can be pulled with authentication.
 
 ### Why is this operator required?
