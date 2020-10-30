@@ -25,7 +25,7 @@ type ServiceAccountWatcher struct {
 	SecretReconciler *SecretReconciler
 }
 
-// +kubebuilder:rbac:groups=core,resources=serviceaccount,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=core,resources=serviceaccounts,verbs=get;list;watch;update;patch
 
 func (r *ServiceAccountWatcher) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
