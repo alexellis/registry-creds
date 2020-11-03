@@ -67,7 +67,7 @@ Todo:
 Apply the YAML for the manifest.
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/alexellis/registry-creds/master/mainfest.yaml
+kubectl apply -f https://raw.githubusercontent.com/alexellis/registry-creds/master/manifest.yaml
 ```
 
 ### Or make locally

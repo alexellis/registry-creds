@@ -42,7 +42,7 @@ deploy: manifests
 
 shrinkwrap:
 	cd config/manager && kustomize edit set image controller=alexellis2/registry-creds-controller:$(TAG)
-	kustomize build config/default > mainfest.yaml
+	kustomize build config/default > manifest.yaml
 
 # Generate manifests e.g. CRD, RBAC etc.
 manifests: controller-gen

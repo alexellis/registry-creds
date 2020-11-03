@@ -76,14 +76,32 @@ func (r *SecretReconciler) Reconcile(clusterPullSecret v1.ClusterPullSecret, ns 
 		return err
 	}
 
-	serviceAccountName := "default"
-	err = r.appendSecretToSA(clusterPullSecret, pullSecret, ns, serviceAccountName)
+	SAs, err := r.listWithin(ns)
 	if err != nil {
-		r.Log.Info(err.Error())
-		return err
+		wrappedErr := errors.Wrapf(err, "failed to list service accounts in %s namespace", ns)
+		r.Log.Info(wrappedErr.Error())
+		return wrappedErr
+	}
+
+	for _, sa := range SAs.Items {
+		err = r.appendSecretToSA(clusterPullSecret, pullSecret, ns, sa.Name)
+		if err != nil {
+			r.Log.Info(err.Error())
+			return err
+		}
 	}
 
 	return nil
+}
+
+func (r *SecretReconciler) listWithin(ns string) (*corev1.ServiceAccountList, error) {
+	ctx := context.Background()
+	SAs := &corev1.ServiceAccountList{}
+	err := r.Client.List(ctx, SAs, client.InNamespace(ns))
+	if err != nil {
+		return nil, err
+	}
+	return SAs, nil
 }
 
 func (r *SecretReconciler) createSecret(clusterPullSecret v1.ClusterPullSecret, pullSecret *corev1.Secret, ns string) error {
