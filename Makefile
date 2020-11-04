@@ -13,15 +13,15 @@ else
 GOBIN=$(shell go env GOBIN)
 endif
 
-all: manager
+all: controller
 
 # Run tests
 test: generate fmt vet manifests
 	go test ./... -coverprofile cover.out
 
-# Build manager binary
-manager: generate fmt vet
-	go build -o bin/manager main.go
+# Build controller binary
+controller: generate fmt vet
+	go build -o bin/controller main.go
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
 run: generate fmt vet manifests
@@ -37,11 +37,11 @@ uninstall: manifests
 
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 deploy: manifests
-	cd config/manager && kustomize edit set image controller=alexellis2/registry-creds-controller:$(TAG)
+	cd config/controller && kustomize edit set image controller=alexellis2/registry-creds-controller:$(TAG)
 	kustomize build config/default | kubectl apply -f -
 
 shrinkwrap:
-	cd config/manager && kustomize edit set image controller=alexellis2/registry-creds-controller:$(TAG)
+	cd config/controller && kustomize edit set image controller=alexellis2/registry-creds-controller:$(TAG)
 	kustomize build config/default > manifest.yaml
 
 # Generate manifests e.g. CRD, RBAC etc.
