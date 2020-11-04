@@ -231,6 +231,7 @@ spec:
         - /manager
         image: ghcr.io/alexellis/registry-creds:0.2.1
         name: manager
+        imagePullPolicy: IfNotPresent
         resources:
           limits:
             cpu: 100m
