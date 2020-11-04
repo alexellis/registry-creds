@@ -46,7 +46,7 @@ jobs:
       - name: Apply CRD
         run: |
           export TAG=${{ github.sha }}
-          sed -ie "s/0.2.1/$TAG/g" ./manifest.yaml
+          TAG=${{ github.sha }} make shrinkwrap
           kubectl apply -f ./manifest.yaml
       - name: Check deployment
         run: 
