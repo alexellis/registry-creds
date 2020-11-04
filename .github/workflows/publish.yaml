@@ -32,6 +32,6 @@ jobs:
           outputs: "type=registry,push=true"
           platforms: linux/amd64,linux/arm/v6,linux/arm64
           tags: |
-          ghcr.io/alexellis/registry-creds:${{ github.sha }}
-          ghcr.io/alexellis/registry-creds:${{ steps.get_tag.outputs.TAG }}
-          ghcr.io/alexellis/registry-creds:latest
+            ghcr.io/alexellis/registry-creds:${{ github.sha }}
+            ghcr.io/alexellis/registry-creds:${{ steps.get_tag.outputs.TAG }}
+            ghcr.io/alexellis/registry-creds:latest
