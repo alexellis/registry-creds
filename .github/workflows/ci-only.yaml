@@ -30,8 +30,6 @@ jobs:
           outputs: "type=docker,push=false"
           platforms: linux/amd64
           tags: ghcr.io/alexellis/registry-creds:${{ github.sha }}
-      - name: Image digest
-        run: echo ghcr.io/alexellis/registry-creds:${{ github.sha }}
       - name: Image digest 2
         run: echo ${{ steps.local_build.outputs.digest }}
       - name: Setup Kubernetes
@@ -39,15 +37,13 @@ jobs:
         with:
           version: "v0.9.0"
           image: kindest/node:v1.18.8
-      - name: Show images
-        run: docker images
       - name: Load test image
-        run: kind load --loglevel trace docker-image ghcr.io/alexellis/registry-creds:${{ github.sha }}
-      - name: Apply CRD
+        run: kind load --loglevel trace docker-image ${{ steps.local_build.outputs.digest }}
+      - name: Apply manifests
         run: |
-          export TAG=${{ github.sha }}
           TAG=${{ github.sha }} make shrinkwrap
+          cat ./manifest.yaml | grep ghcr
           kubectl apply -f ./manifest.yaml
       - name: Check deployment
-        run: 
-          kubectl rollout status -n registry-creds-system deploy/registry-creds-registry-creds-controller --timeout=2m || kubectl describe -n registry-creds-system deploy/registry-creds-registry-creds-controller
+        run:
+          kubectl rollout status -n registry-creds-system deploy/registry-creds-registry-creds-controller --timeout=2m || kubectl describe -n registry-creds-system deploy/registry-creds-registry-creds-controller && kubectl get events -n registry-creds-system
