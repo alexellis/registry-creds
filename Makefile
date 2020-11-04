@@ -42,9 +42,9 @@ deploy: manifests
 
 .PHONY: shrinkwrap
 shrinkwrap:
-	cd config/controller && kustomize edit set image controller=ghcr.io/alexellis/registry-creds-controller:$(TAG)
-	kustomize build config/default > manifest.yaml
-
+	cd config/default && \
+	kustomize edit set image ghcr.io/alexellis/registry-creds-controller:$(TAG) && \
+	kustomize build > ../../manifest.yaml
 # Generate manifests e.g. CRD, RBAC etc.
 manifests: controller-gen
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=registry-creds-role paths="./..." output:crd:artifacts:config=config/crd/bases
