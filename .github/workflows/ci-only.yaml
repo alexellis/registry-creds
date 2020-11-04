@@ -2,8 +2,10 @@ name: ci-only
 
 on:
   push:
-    tags:
-      - '*'
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
 
 jobs:
   build:
