@@ -36,6 +36,8 @@ jobs:
         run: echo ghcr.io/alexellis/registry-creds:${{ github.sha }}
       - name: Setup Kubernetes
         uses: engineerd/setup-kind@v0.4.0
+        with:
+          version: "v0.7.0"
       - name: Load test image
         run: kind load docker-image ghcr.io/alexellis/registry-creds:${{ github.sha }}
       - name: Apply CRD

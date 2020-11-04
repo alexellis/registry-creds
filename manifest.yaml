@@ -59,8 +59,8 @@ status:
   acceptedNames:
     kind: ""
     plural: ""
-  conditions: null
-  storedVersions: null
+  conditions: []
+  storedVersions: []
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
