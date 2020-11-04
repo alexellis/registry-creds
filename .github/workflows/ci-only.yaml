@@ -24,17 +24,18 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
           registry: ghcr.io
-      - name: Build and push
+      - name: Local build
         id: local_build
         uses: docker/build-push-action@v2
         with:
           push: false
           platforms: linux/amd64
+          load: true # Keep in local image library
           tags: ghcr.io/alexellis/registry-creds:${{ github.sha }}
       - name: Image digest
-        run: echo ${{ steps.local_build.outputs.digest }}
+        run: echo ghcr.io/alexellis/registry-creds:${{ github.sha }}
       - name: Load test image
-        run: kind load docker-image ${{ steps.local_build.outputs.digest }}
+        run: kind load docker-image ghcr.io/alexellis/registry-creds:${{ github.sha }}
       - name: Setup Kubernetes
         uses: engineerd/setup-kind@v0.4.0
       - name: Apply CRD
