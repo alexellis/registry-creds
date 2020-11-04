@@ -34,10 +34,10 @@ jobs:
           tags: ghcr.io/alexellis/registry-creds:${{ github.sha }}
       - name: Image digest
         run: echo ghcr.io/alexellis/registry-creds:${{ github.sha }}
+        uses: engineerd/setup-kind@v0.4.0
+      - name: Setup Kubernetes
       - name: Load test image
         run: kind load docker-image ghcr.io/alexellis/registry-creds:${{ github.sha }}
-      - name: Setup Kubernetes
-        uses: engineerd/setup-kind@v0.4.0
       - name: Apply CRD
         run: |
           export TAG=${{ github.sha }}
