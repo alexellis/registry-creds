@@ -230,6 +230,7 @@ spec:
         command:
         - /controller
         image: ghcr.io/alexellis/registry-creds-controller:0.2.2
+        imagePullPolicy: IfNotPresent
         name: controller
         resources:
           limits:
