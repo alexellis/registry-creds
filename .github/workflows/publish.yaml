@@ -12,6 +12,9 @@ jobs:
       - uses: actions/checkout@master
         with:
           fetch-depth: 1
+      - name: Get TAG
+        id: get_tag
+        run: echo ::set-output name=TAG::${GITHUB_REF#refs/tags/}
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
@@ -28,4 +31,7 @@ jobs:
         with:
           outputs: "type=registry,push=true"
           platforms: linux/amd64,linux/arm/v6,linux/arm64
-          tags: ghcr.io/alexellis/registry-creds:${{ github.sha }}
+          tags: |
+          ghcr.io/alexellis/registry-creds:${{ github.sha }}
+          ghcr.io/alexellis/registry-creds:${{ steps.get_tag.outputs.TAG }}
+          ghcr.io/alexellis/registry-creds:latest
