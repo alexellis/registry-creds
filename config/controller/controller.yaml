@@ -27,7 +27,7 @@ spec:
         - /controller
         args:
         - --enable-leader-election
-        image: ghcr.io/alexellis/registry-creds-controller:0.1.1
+        image: ghcr.io/alexellis/registry-creds-controller:0.2.0
         name: controller
         resources:
           limits:
