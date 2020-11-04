@@ -1,8 +1,8 @@
 resources:
-- manager.yaml
+- controller.yaml
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 images:
 - name: controller
-  newName: alexellis2/registry-creds-controller
-  newTag: 0.2.0
+  newName: ghcr.io/alexellis/registry-creds-controller
+  newTag: 0.2.2

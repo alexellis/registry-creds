@@ -24,11 +24,12 @@ spec:
     spec:
       containers:
       - command:
-        - /manager
+        - /controller
         args:
         - --enable-leader-election
-        image: alexellis2/registry-creds-controller:0.1.1
-        name: manager
+        image: ghcr.io/alexellis/registry-creds:0.2.0
+        name: controller
+        imagePullPolicy: IfNotPresent
         resources:
           limits:
             cpu: 100m

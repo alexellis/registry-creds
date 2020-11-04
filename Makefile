@@ -13,15 +13,15 @@ else
 GOBIN=$(shell go env GOBIN)
 endif
 
-all: manager
+all: controller
 
 # Run tests
 test: generate fmt vet manifests
 	go test ./... -coverprofile cover.out
 
-# Build manager binary
-manager: generate fmt vet
-	go build -o bin/manager main.go
+# Build controller binary
+controller: generate fmt vet
+	go build -o bin/controller main.go
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
 run: generate fmt vet manifests
@@ -37,13 +37,14 @@ uninstall: manifests
 
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 deploy: manifests
-	cd config/manager && kustomize edit set image controller=alexellis2/registry-creds-controller:$(TAG)
+	cd config/controller && kustomize edit set image controller=ghcr.io/alexellis/registry-creds:$(TAG)
 	kustomize build config/default | kubectl apply -f -
 
+.PHONY: shrinkwrap
 shrinkwrap:
-	cd config/manager && kustomize edit set image controller=alexellis2/registry-creds-controller:$(TAG)
-	kustomize build config/default > manifest.yaml
-
+	cd config/default && \
+	kustomize edit set image ghcr.io/alexellis/registry-creds:$(TAG) && \
+	kustomize build > ../../manifest.yaml
 # Generate manifests e.g. CRD, RBAC etc.
 manifests: controller-gen
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=registry-creds-role paths="./..." output:crd:artifacts:config=config/crd/bases
@@ -65,7 +66,7 @@ docker-build:
 	@docker buildx create --use --name=multiarch --node=multiarch && \
 	docker buildx build \
 		--output "type=docker,push=false" \
-		--tag alexellis2/registry-creds-controller:$(TAG) \
+		--tag alexellis2registry-creds:$(TAG) \
 		.
 
 .PHONY: docker-publish # Push the docker image to the remote registry
@@ -74,7 +75,7 @@ docker-publish:
 	docker buildx build \
 		--platform linux/amd64,linux/arm/v7,linux/arm64 \
 		--output "type=image,push=true" \
-		--tag alexellis2/registry-creds-controller:$(TAG) .
+		--tag alexellis2registry-creds:$(TAG) .
 
 # find or download controller-gen
 # download controller-gen if necessary
