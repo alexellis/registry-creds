@@ -50,4 +50,4 @@ jobs:
           kubectl apply -f ./manifest.yaml
       - name: Check deployment
         run: 
-          kubectl rollout status -n registry-creds-system deploy/registry-creds-registry-creds-controller --timeout=2m || kubectl describe -n registry-creds-system deploy deploy/registry-creds-registry-creds-controller
+          kubectl rollout status -n registry-creds-system deploy/registry-creds-registry-creds-controller --timeout=2m || kubectl describe -n registry-creds-system deploy/registry-creds-registry-creds-controller
