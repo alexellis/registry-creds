@@ -158,7 +158,7 @@ Now create a `ClusterPullSecret` YAML file, and populate the `secretRef` with th
 apiVersion: ops.alexellis.io/v1
 kind: ClusterPullSecret
 metadata:
-  name: dockerhub
+  name: Docker Registry
 spec:
   secretRef:
     name: registry-creds-secret
