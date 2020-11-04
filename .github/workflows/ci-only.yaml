@@ -32,11 +32,15 @@ jobs:
           tags: ghcr.io/alexellis/registry-creds:${{ github.sha }}
       - name: Image digest
         run: echo ghcr.io/alexellis/registry-creds:${{ github.sha }}
+      - name: Image digest 2
+        run: echo ${{ steps.local_build.outputs.digest }}
       - name: Setup Kubernetes
         uses: engineerd/setup-kind@v0.4.0
         with:
           version: "v0.9.0"
           image: kindest/node:v1.18.8
+      - name: Show images
+        run: docker images
       - name: Load test image
         run: kind load --loglevel trace docker-image ghcr.io/alexellis/registry-creds:${{ github.sha }}
       - name: Apply CRD
