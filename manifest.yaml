@@ -229,7 +229,7 @@ spec:
         - --enable-leader-election
         command:
         - /manager
-        image: alexellis2/registry-creds-controller:0.2.1
+        image: ghcr.io/alexellis/registry-creds:0.2.1
         name: manager
         resources:
           limits:

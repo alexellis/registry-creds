@@ -33,3 +33,16 @@ jobs:
           tags: ghcr.io/alexellis/registry-creds:${{ github.sha }}
       - name: Image digest
         run: echo ${{ steps.local_build.outputs.digest }}
+      - name: Load test image
+        run: kind load docker-image ${{ steps.local_build.outputs.digest }}
+      - name: Setup Kubernetes
+        uses: engineerd/setup-kind@v0.4.0
+      - name: Apply CRD
+        run: |
+          export TAG=${{ github.sha }}
+          sed -ie "s/0.2.1/$TAG/g" ./manifest.yaml
+          kubectl apply -f ./manifest.yaml
+      - name: Get deployment
+        run: 
+          kubectl rollout status -n registry-creds-system deploy/registry-creds-registry-creds-controller
+
