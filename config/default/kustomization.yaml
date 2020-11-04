@@ -11,5 +11,7 @@ resources:
 - ../rbac
 - ../controller
 images:
+- name: ghcr.io/alexellis/registry-creds
+  newTag: 0.2.2
 - name: ghcr.io/alexellis/registry-creds-controller
   newTag: 0.2.2
