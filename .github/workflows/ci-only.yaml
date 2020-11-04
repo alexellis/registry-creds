@@ -27,9 +27,8 @@ jobs:
         id: local_build
         uses: docker/build-push-action@v2
         with:
+          outputs: "type=docker,push=false"
           platforms: linux/amd64
-          # push: false # Don't push to a registry
-          load: true  # Keep in local image library
           tags: ghcr.io/alexellis/registry-creds:${{ github.sha }}
       - name: Image digest
         run: echo ghcr.io/alexellis/registry-creds:${{ github.sha }}
