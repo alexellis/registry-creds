@@ -26,6 +26,8 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
+	corev1 "k8s.io/api/core/v1"
+
 	opsv1 "alexellis/registry-creds/api/v1"
 	"alexellis/registry-creds/controllers"
 	// +kubebuilder:scaffold:imports
@@ -40,6 +42,7 @@ func init() {
 	_ = clientgoscheme.AddToScheme(scheme)
 
 	_ = opsv1.AddToScheme(scheme)
+	_ = corev1.AddToScheme(scheme)
 	// +kubebuilder:scaffold:scheme
 }
 
@@ -81,6 +84,14 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "ClusterPullSecret")
 		os.Exit(1)
 	}
+	if err = (&controllers.ServiceAccountReconciler{
+		Client: mgr.GetClient(),
+		Log:    ctrl.Log.WithName("controllers").WithName("ServiceAccount"),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "ServiceAccount")
+		os.Exit(1)
+	}
 	// +kubebuilder:scaffold:builder
 
 	if err = (&controllers.NamespaceWatcher{
@@ -90,6 +101,14 @@ func main() {
 		SecretReconciler: secretReconciler,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create watcher", "watcher", "Namespace")
+		os.Exit(1)
+	}
+	if err = (&controllers.ServiceAccountReconciler{
+		Client: mgr.GetClient(),
+		Log:    ctrl.Log.WithName("controllers").WithName("ServiceAccount"),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "ServiceAccount")
 		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder
