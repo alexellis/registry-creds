@@ -29,8 +29,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// ServiceAccountReconciler reconciles a ServiceAccount object
-type ServiceAccountReconciler struct {
+// ServiceAccountWatcher reconciles a ServiceAccount object
+type ServiceAccountWatcher struct {
 	client.Client
 	Log    logr.Logger
 	Scheme *runtime.Scheme
@@ -39,7 +39,7 @@ type ServiceAccountReconciler struct {
 // +kubebuilder:rbac:groups=core,resources=serviceaccounts,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=core,resources=serviceaccounts/status,verbs=get;update;patch
 
-func (r *ServiceAccountReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+func (r *ServiceAccountWatcher) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
 	r.Log.WithValues("serviceaccount", req.NamespacedName)
 
@@ -69,7 +69,7 @@ func (r *ServiceAccountReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 	return ctrl.Result{}, nil
 }
 
-func (r *ServiceAccountReconciler) appendSecretToSA(clusterPullSecret v1.ClusterPullSecret, ns, serviceAccountName string) error {
+func (r *ServiceAccountWatcher) appendSecretToSA(clusterPullSecret v1.ClusterPullSecret, ns, serviceAccountName string) error {
 	ctx := context.Background()
 
 	secretKey := clusterPullSecret.Name + "-registrycreds"
@@ -104,7 +104,7 @@ func (r *ServiceAccountReconciler) appendSecretToSA(clusterPullSecret v1.Cluster
 }
 
 
-func (r *ServiceAccountReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *ServiceAccountWatcher) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&corev1.ServiceAccount{}).
 		Complete(r)
