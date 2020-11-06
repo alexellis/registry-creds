@@ -84,7 +84,7 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "ClusterPullSecret")
 		os.Exit(1)
 	}
-	if err = (&controllers.ServiceAccountReconciler{
+	if err = (&controllers.ServiceAccountWatcher{
 		Client: mgr.GetClient(),
 		Log:    ctrl.Log.WithName("controllers").WithName("ServiceAccount"),
 		Scheme: mgr.GetScheme(),
@@ -103,7 +103,7 @@ func main() {
 		setupLog.Error(err, "unable to create watcher", "watcher", "Namespace")
 		os.Exit(1)
 	}
-	if err = (&controllers.ServiceAccountReconciler{
+	if err = (&controllers.ServiceAccountWatcher{
 		Client: mgr.GetClient(),
 		Log:    ctrl.Log.WithName("controllers").WithName("ServiceAccount"),
 		Scheme: mgr.GetScheme(),
