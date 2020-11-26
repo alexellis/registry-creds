@@ -139,13 +139,13 @@ To use this operator create a `ClusterPullSecret` CustomResource and apply it to
 Create a "seed" secret so that it can be referenced by the ClusterPullSecret. You can customise the name, and namespace as per your own preference.
 
 ```bash
-export USERNAME=username
+export DOCKERHUBID=username
 export PW=mypassword
 export EMAIL=me@example.com
 
 kubectl create secret docker-registry registry-creds-secret \
   --namespace kube-system \
-  --docker-username=$USERNAME \
+  --docker-username=$DOCKERHUBID \
   --docker-password=$PW \
   --docker-email=$EMAIL
 ```
@@ -158,7 +158,7 @@ Now create a `ClusterPullSecret` YAML file, and populate the `secretRef` with th
 apiVersion: ops.alexellis.io/v1
 kind: ClusterPullSecret
 metadata:
-  name: Docker Registry
+  name: docker-registry
 spec:
   secretRef:
     name: registry-creds-secret
