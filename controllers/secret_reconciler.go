@@ -45,53 +45,96 @@ func (r *SecretReconciler) Reconcile(clusterPullSecret v1.ClusterPullSecret, ns 
 	}
 
 	if ignoredNamespace(targetNS) {
-		r.Log.Info(fmt.Sprintf("ignoring namespace %s due to annotation: %s ", ns, ignoreAnnotation))
-		return nil
-	}
+		r.Log.Info(fmt.Sprintf("removing secret and from namespace %s due to annotation: %s ", ns, ignoreAnnotation))
 
-	r.Log.Info(fmt.Sprintf("Getting SA for: %s", ns))
+		r.Log.Info(fmt.Sprintf("Getting SA for: %s", ns))
 
-	if clusterPullSecret.Spec.SecretRef == nil ||
-		clusterPullSecret.Spec.SecretRef.Name == "" ||
-		clusterPullSecret.Spec.SecretRef.Namespace == "" {
-		return fmt.Errorf("no valid secretRef found on ClusterPullSecret: %s.%s",
-			clusterPullSecret.Name,
-			clusterPullSecret.Namespace)
-	}
+		if clusterPullSecret.Spec.SecretRef == nil ||
+			clusterPullSecret.Spec.SecretRef.Name == "" ||
+			clusterPullSecret.Spec.SecretRef.Namespace == "" {
+			return fmt.Errorf("no valid secretRef found on ClusterPullSecret: %s.%s",
+				clusterPullSecret.Name,
+				clusterPullSecret.Namespace)
+		}
 
-	pullSecret := &corev1.Secret{}
-	if err := r.Get(ctx,
-		client.ObjectKey{
-			Name:      clusterPullSecret.Spec.SecretRef.Name,
-			Namespace: clusterPullSecret.Spec.SecretRef.Namespace},
-		pullSecret); err != nil {
-		wrappedErr := errors.Wrapf(err, "unable to fetch seedSecret %s.%s", clusterPullSecret.Spec.SecretRef.Name, clusterPullSecret.Spec.SecretRef.Namespace)
-		r.Log.Info(fmt.Sprintf("%s", wrappedErr.Error()))
-		return wrappedErr
-	}
+		pullSecret := &corev1.Secret{}
+		if err := r.Get(ctx,
+			client.ObjectKey{
+				Name:      clusterPullSecret.Spec.SecretRef.Name,
+				Namespace: clusterPullSecret.Spec.SecretRef.Namespace},
+			pullSecret); err != nil {
+			wrappedErr := errors.Wrapf(err, "unable to fetch seedSecret %s.%s", clusterPullSecret.Spec.SecretRef.Name, clusterPullSecret.Spec.SecretRef.Namespace)
+			r.Log.Info(fmt.Sprintf("%s", wrappedErr.Error()))
+			return wrappedErr
+		}
 
-	err := r.createSecret(clusterPullSecret, pullSecret, ns)
-	if err != nil {
-		r.Log.Info(err.Error())
-		return err
-	}
+		SAs, err := r.listWithin(ns)
+		if err != nil {
+			wrappedErr := errors.Wrapf(err, "failed to list service accounts in %s namespace", ns)
+			r.Log.Info(wrappedErr.Error())
+			return wrappedErr
+		}
 
-	SAs, err := r.listWithin(ns)
-	if err != nil {
-		wrappedErr := errors.Wrapf(err, "failed to list service accounts in %s namespace", ns)
-		r.Log.Info(wrappedErr.Error())
-		return wrappedErr
-	}
+		for _, sa := range SAs.Items {
+			err = r.removeSecretFromSA(clusterPullSecret, pullSecret, ns, sa.Name)
+			if err != nil {
+				r.Log.Info(err.Error())
+				return err
+			}
+		}
 
-	for _, sa := range SAs.Items {
-		err = r.appendSecretToSA(clusterPullSecret, pullSecret, ns, sa.Name)
+		err = r.deleteSecret(clusterPullSecret, pullSecret, ns)
 		if err != nil {
 			r.Log.Info(err.Error())
 			return err
 		}
-	}
 
-	return nil
+		return nil
+	} else {
+		r.Log.Info(fmt.Sprintf("Getting SA for: %s", ns))
+
+		if clusterPullSecret.Spec.SecretRef == nil ||
+			clusterPullSecret.Spec.SecretRef.Name == "" ||
+			clusterPullSecret.Spec.SecretRef.Namespace == "" {
+			return fmt.Errorf("no valid secretRef found on ClusterPullSecret: %s.%s",
+				clusterPullSecret.Name,
+				clusterPullSecret.Namespace)
+		}
+
+		pullSecret := &corev1.Secret{}
+		if err := r.Get(ctx,
+			client.ObjectKey{
+				Name:      clusterPullSecret.Spec.SecretRef.Name,
+				Namespace: clusterPullSecret.Spec.SecretRef.Namespace},
+			pullSecret); err != nil {
+			wrappedErr := errors.Wrapf(err, "unable to fetch seedSecret %s.%s", clusterPullSecret.Spec.SecretRef.Name, clusterPullSecret.Spec.SecretRef.Namespace)
+			r.Log.Info(fmt.Sprintf("%s", wrappedErr.Error()))
+			return wrappedErr
+		}
+
+		err := r.createSecret(clusterPullSecret, pullSecret, ns)
+		if err != nil {
+			r.Log.Info(err.Error())
+			return err
+		}
+
+		SAs, err := r.listWithin(ns)
+		if err != nil {
+			wrappedErr := errors.Wrapf(err, "failed to list service accounts in %s namespace", ns)
+			r.Log.Info(wrappedErr.Error())
+			return wrappedErr
+		}
+
+		for _, sa := range SAs.Items {
+			err = r.appendSecretToSA(clusterPullSecret, pullSecret, ns, sa.Name)
+			if err != nil {
+				r.Log.Info(err.Error())
+				return err
+			}
+		}
+
+		return nil
+	}
 }
 
 func (r *SecretReconciler) listWithin(ns string) (*corev1.ServiceAccountList, error) {
@@ -144,6 +187,41 @@ func (r *SecretReconciler) createSecret(clusterPullSecret v1.ClusterPullSecret, 
 	return nil
 }
 
+func (r *SecretReconciler) deleteSecret(clusterPullSecret v1.ClusterPullSecret, pullSecret *corev1.Secret, ns string) error {
+	ctx := context.Background()
+
+	secretKey := clusterPullSecret.Name + "-registrycreds"
+
+	nsSecret := &corev1.Secret{}
+	err := r.Client.Get(ctx, client.ObjectKey{Name: secretKey, Namespace: ns}, nsSecret)
+	if err != nil {
+		notFound := apierrors.IsNotFound(err)
+		if !notFound {
+			return errors.Wrap(err, "unexpected error checking for the namespaced pull secret")
+		}
+
+		return nil
+	}
+
+	nsSecret = &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      secretKey,
+			Namespace: ns,
+		},
+		Data: pullSecret.Data,
+		Type: corev1.SecretTypeDockerConfigJson,
+	}
+
+	err = r.Client.Delete(ctx, nsSecret)
+	if err != nil {
+		r.Log.Info(fmt.Sprintf("can't delete secret: %s.%s, %s", secretKey, ns, err.Error()))
+		return err
+	}
+	r.Log.Info(fmt.Sprintf("deleted secret: %s.%s", secretKey, ns))
+
+	return nil
+}
+
 func (r *SecretReconciler) appendSecretToSA(clusterPullSecret v1.ClusterPullSecret, pullSecret *corev1.Secret, ns, serviceAccountName string) error {
 	ctx := context.Background()
 
@@ -178,6 +256,42 @@ func (r *SecretReconciler) appendSecretToSA(clusterPullSecret v1.ClusterPullSecr
 	return nil
 }
 
+func (r *SecretReconciler) removeSecretFromSA(clusterPullSecret v1.ClusterPullSecret, pullSecret *corev1.Secret, ns, serviceAccountName string) error {
+	ctx := context.Background()
+
+	secretKey := clusterPullSecret.Name + "-registrycreds"
+
+	sa := &corev1.ServiceAccount{}
+	err := r.Client.Get(ctx, client.ObjectKey{Name: serviceAccountName, Namespace: ns}, sa)
+	if err != nil {
+		r.Log.Info(fmt.Sprintf("error getting SA in namespace: %s, %s", ns, err.Error()))
+		wrappedErr := fmt.Errorf("unable to append pull secret to service account: %s", err)
+		r.Log.Info(wrappedErr.Error())
+		return wrappedErr
+	}
+
+	r.Log.Info(fmt.Sprintf("Pull secrets: %v", sa.ImagePullSecrets))
+
+	hasSecret := hasImagePullSecret(sa, secretKey)
+
+	if hasSecret {
+		var imagePullSecrets []corev1.LocalObjectReference
+		for _, s := range sa.ImagePullSecrets {
+			if s.Name != secretKey {
+				imagePullSecrets = append(imagePullSecrets, s)
+			}
+		}
+		sa.ImagePullSecrets = imagePullSecrets
+		err = r.Update(ctx, sa.DeepCopy())
+		if err != nil {
+			wrappedErr := fmt.Errorf("unable to remove pull secret to service account: %s", err)
+			r.Log.Info(wrappedErr.Error())
+			return err
+		}
+	}
+
+	return nil
+}
 func hasImagePullSecret(sa *corev1.ServiceAccount, secretKey string) bool {
 	found := false
 	if len(sa.ImagePullSecrets) > 0 {
