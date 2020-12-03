@@ -21,6 +21,9 @@ jobs:
         id: local_build
         uses: docker/build-push-action@v2
         with:
+          build-args: |
+            Version=dev
+            GitCommit=${{ github.sha }}
           outputs: "type=docker,push=false"
           platforms: linux/amd64
           tags: ghcr.io/alexellis/registry-creds:${{ github.sha }}

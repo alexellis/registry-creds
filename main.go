@@ -1,7 +1,7 @@
 /*
 
 
-Licensed under the Apache License, Version 2.0 (the "License");
+Licensed under the Apache License, Release 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
@@ -36,6 +36,8 @@ import (
 var (
 	scheme   = runtime.NewScheme()
 	setupLog = ctrl.Log.WithName("setup")
+	Release  string
+	SHA      string
 )
 
 func init() {
@@ -113,7 +115,7 @@ func main() {
 	}
 	// +kubebuilder:scaffold:builder
 
-	setupLog.Info("starting manager")
+	setupLog.Info("starting manager with the version %s and commit %s", Release, SHA)
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
