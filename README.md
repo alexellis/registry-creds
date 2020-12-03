@@ -42,7 +42,7 @@ Backlog (done):
 - [x] Add Docker image for `x86_64`
 - [x] Test and update kustomize
 - [x] Add multi-arch Docker image for `x86_64` and arm
-- [x] Add one-liner with an arkade app - `arkade install registry-creds --username $USERNAME --password $PASSWORD`
+- [x] Add one-liner with an arkade app - `arkade install registry-creds --username $DOCKER_USERNAME --password $PASSWORD`
 - [x] ~~Add helm chart~~ - static manifest available instead
 - [x] Use `apierrors.IsNotFound(err)` everywhere instead of assuming an error means not found
 
@@ -139,13 +139,13 @@ To use this operator create a `ClusterPullSecret` CustomResource and apply it to
 Create a "seed" secret so that it can be referenced by the ClusterPullSecret. You can customise the name, and namespace as per your own preference.
 
 ```bash
-export USERNAME=username
+export DOCKER_USERNAME=username
 export PW=mypassword
 export EMAIL=me@example.com
 
 kubectl create secret docker-registry registry-creds-secret \
   --namespace kube-system \
-  --docker-username=$USERNAME \
+  --docker-username=$DOCKER_USERNAME \
   --docker-password=$PW \
   --docker-email=$EMAIL
 ```
