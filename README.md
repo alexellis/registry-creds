@@ -25,9 +25,9 @@ The normal process is as follows, which becomes tedious and repetitive when you 
 * Create a secret
 * Edit your service account, and add the name of the secret to `imagePullSecrets`
 
-## Value and usefulness
+## The value to your workflow
 
-If you think this project is useful and has value to your workflow, then please become a GitHub Sponsor and find a tier that works for your budget.
+If you're a user or find value in this project for your workflow, then support its ongoing development and support on GitHub.
 
 * [Sponsor on GitHub](https://github.com/sponsors/alexellis/)
 
