@@ -45,11 +45,11 @@ Backlog (done):
 - [x] Add one-liner with an arkade app - `arkade install registry-creds --username $DOCKER_USERNAME --password $PASSWORD`
 - [x] ~~Add helm chart~~ - static manifest available instead
 - [x] Use `apierrors.IsNotFound(err)` everywhere instead of assuming an error means not found
+- [x] Support additional ServiceAccounts beyond the `default` account in each namespace
 
 Todo:
 - [ ] Remove pull secret reference from ServiceAccounts upon ClusterPullSecret deletion
-- [ ] Support additional ServiceAccounts beyond the `default` account in each namespace
-- [ ] Propagate alterations/updates to the primary `ClusterPullSecret` in each namespace when the secret value changes
+- [ ] Propagate alterations/updates to the primary `ClusterPullSecret` in each namespace when the secret value changes (the work-around is to delete and re-create the ClusterPullSecret)
 
 ## Installation
 
