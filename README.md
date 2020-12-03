@@ -25,11 +25,11 @@ The normal process is as follows, which becomes tedious and repetitive when you 
 * Create a secret
 * Edit your service account, and add the name of the secret to `imagePullSecrets`
 
-## The value to your workflow
+## Built for developers by developers
 
-If you're a user or find value in this project for your workflow, then support its ongoing development and support on GitHub.
-
-* [Sponsor on GitHub](https://github.com/sponsors/alexellis/)
+<a href="https://github.com/sponsors/alexellis/">
+<img alt="Sponsor this project" src="https://github.com/alexellis/alexellis/blob/master/sponsor-today.png" width="65%" height="65%">
+</a>
 
 ## Status
 
