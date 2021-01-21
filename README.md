@@ -25,7 +25,15 @@ The normal process is as follows, which becomes tedious and repetitive when you 
 * Create a secret
 * Edit your service account, and add the name of the secret to `imagePullSecrets`
 
-## Built for developers by developers
+## If you decide to use this tool at work
+
+Set up a <a href="https://github.com/sponsors/alexellis/">personal sponsorship to Alex</a>, or get your company to sponsor with their GitHub Account, which is easy to set up with your existing GitHub billing relationship.
+
+But why?
+
+It's less than you think, and shows that you want this software to be bug free, and dependable, whether you use it in dev, staging, with customers or in production.
+
+### Built for developers by developers
 
 <a href="https://github.com/sponsors/alexellis/">
 <img alt="Sponsor this project" src="https://github.com/alexellis/alexellis/blob/master/sponsor-today.png" width="90%">
