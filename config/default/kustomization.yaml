@@ -14,4 +14,4 @@ images:
 - name: ghcr.io/alexellis/registry-creds
   newTag: a3b31a2e9510f56c4ef5b538225facf16a7f9362
 - name: ghcr.io/alexellis/registry-creds-controller
-  newTag: 0.2.2
+  newTag: 0.2.6

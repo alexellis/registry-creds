@@ -5,4 +5,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: ghcr.io/alexellis/registry-creds-controller
-  newTag: 0.2.2
+  newTag: 0.2.6
