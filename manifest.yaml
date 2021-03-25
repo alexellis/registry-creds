@@ -72,8 +72,6 @@ rules:
   - ""
   resources:
   - configmaps
-  resourceNames:
-  - 8bdecb1a.alexellis.io
   verbs:
   - get
   - create
