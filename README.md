@@ -164,7 +164,7 @@ kubectl create secret docker-registry registry-creds-secret \
   --docker-email=$EMAIL
 ```
 
-If you're not using the Docker Hub, then add `--docker-password`
+If you're not using the Docker Hub, then add `--docker-server`
 
 Now create a `ClusterPullSecret` YAML file, and populate the `secretRef` with the secret name and namespace from above.
 
