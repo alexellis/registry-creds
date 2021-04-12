@@ -27,17 +27,13 @@ The normal process is as follows, which becomes tedious and repetitive when you 
 
 ## If you decide to use this tool at work
 
-Set up a <a href="https://github.com/sponsors/alexellis/">personal sponsorship to Alex</a>, or get your company to sponsor with their GitHub Account, which is easy to set up with your existing GitHub billing relationship.
+If you decide to use this tool at work, then [become a GitHub Sponsor](https://github.com/sponsors/alexellis).
 
-But why?
+But why? Isn't Open Source free?
 
-It's less than you think, and shows that you want this software to be bug free, and dependable, whether you use it in dev, staging, with customers or in production.
+A Sponsorship costs less than you think, and shows that you care about this software. It shows that you want this tool to be bug free and dependable. Whether you use it in dev, staging, with customers or in production, becoming a sponsor will mean faster responses from the maintainers and support its ongoing development.
 
-### Built for developers by developers
-
-<a href="https://github.com/sponsors/alexellis/">
-<img alt="Sponsor this project" src="https://github.com/alexellis/alexellis/blob/master/sponsor-today.png" width="90%">
-</a>
+If you prefer, you can ask your organisation to sponsor instead, using their existing GitHub billing relationship.
 
 ## Status
 
