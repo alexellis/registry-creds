@@ -73,7 +73,7 @@ docker-build:
 docker-publish:
 	@docker buildx create --use --name=multiarch --node=multiarch && \
 	docker buildx build \
-		--platform linux/amd64,linux/arm/v7,linux/arm64 \
+		--platform linux/amd64 \
 		--output "type=image,push=true" \
 		--tag ghcr.io/alexellis/registry-creds:$(TAG) .
 

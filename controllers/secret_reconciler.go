@@ -26,6 +26,9 @@ type SecretReconciler struct {
 	Scheme *runtime.Scheme
 }
 
+// secretSuffix was: -registrycreds
+const secretSuffix = ""
+
 const ignoreAnnotation = "alexellis.io/registry-creds.ignore"
 
 func ignoredNamespace(ns *corev1.Namespace) bool {
@@ -107,7 +110,7 @@ func (r *SecretReconciler) listWithin(ns string) (*corev1.ServiceAccountList, er
 func (r *SecretReconciler) createSecret(clusterPullSecret v1.ClusterPullSecret, pullSecret *corev1.Secret, ns string) error {
 	ctx := context.Background()
 
-	secretKey := clusterPullSecret.Name + "-registrycreds"
+	secretKey := clusterPullSecret.Name + secretSuffix
 
 	nsSecret := &corev1.Secret{}
 	err := r.Client.Get(ctx, client.ObjectKey{Name: secretKey, Namespace: ns}, nsSecret)
@@ -147,7 +150,7 @@ func (r *SecretReconciler) createSecret(clusterPullSecret v1.ClusterPullSecret, 
 func (r *SecretReconciler) appendSecretToSA(clusterPullSecret v1.ClusterPullSecret, pullSecret *corev1.Secret, ns, serviceAccountName string) error {
 	ctx := context.Background()
 
-	secretKey := clusterPullSecret.Name + "-registrycreds"
+	secretKey := clusterPullSecret.Name + secretSuffix
 
 	sa := &corev1.ServiceAccount{}
 	err := r.Client.Get(ctx, client.ObjectKey{Name: serviceAccountName, Namespace: ns}, sa)

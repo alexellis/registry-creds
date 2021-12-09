@@ -20,6 +20,7 @@ import (
 	v1 "alexellis/registry-creds/api/v1"
 	"context"
 	"fmt"
+
 	"github.com/pkg/errors"
 
 	"github.com/go-logr/logr"
@@ -72,7 +73,7 @@ func (r *ServiceAccountWatcher) Reconcile(req ctrl.Request) (ctrl.Result, error)
 func (r *ServiceAccountWatcher) appendSecretToSA(clusterPullSecret v1.ClusterPullSecret, ns, serviceAccountName string) error {
 	ctx := context.Background()
 
-	secretKey := clusterPullSecret.Name + "-registrycreds"
+	secretKey := clusterPullSecret.Name + secretSuffix
 
 	sa := &corev1.ServiceAccount{}
 	err := r.Client.Get(ctx, client.ObjectKey{Name: serviceAccountName, Namespace: ns}, sa)
@@ -102,7 +103,6 @@ func (r *ServiceAccountWatcher) appendSecretToSA(clusterPullSecret v1.ClusterPul
 
 	return nil
 }
-
 
 func (r *ServiceAccountWatcher) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
