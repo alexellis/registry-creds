@@ -150,28 +150,28 @@ Create a "seed" secret so that it can be referenced by the ClusterPullSecret. Yo
 
 ```bash
 export DOCKER_USERNAME=username
-export PW=mypassword
-export EMAIL=me@example.com
+export DOCKER_PASSWORD=mypassword
+export DOCKER_EMAIL=me@example.com
 
-kubectl create secret docker-registry registry-creds-secret \
+kubectl create secret docker-registry registry-creds \
   --namespace kube-system \
   --docker-username=$DOCKER_USERNAME \
-  --docker-password=$PW \
-  --docker-email=$EMAIL
+  --docker-password=$DOCKER_PASSWORD \
+  --docker-email=$DOCKER_EMAIL
 ```
 
-If you're not using the Docker Hub, then add `--docker-password`
+If you're not using the Docker Hub, then add `--docker-server`
 
-Now create a `ClusterPullSecret` YAML file, and populate the `secretRef` with the secret name and namespace from above.
+Now create a `ClusterPullSecret` YAML file. This is a cluster-scoped resource, so you cannot specify a namespace for it. Populate `secretRef` with the secret name and namespace from above. This is the secret that will be copied to each namespace.
 
 ```yaml
 apiVersion: ops.alexellis.io/v1
 kind: ClusterPullSecret
 metadata:
-  name: docker-registry
+  name: dockerhub-registry-creds
 spec:
   secretRef:
-    name: registry-creds-secret
+    name: registry-creds
     namespace: kube-system
 ```
 
