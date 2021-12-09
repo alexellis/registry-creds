@@ -23,19 +23,14 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// ClusterPullSecretSpec defines the desired state of ClusterPullSecret
-type ClusterPullSecretSpec struct {
-	SecretRef *metav1.ObjectMeta `json:"secretRef,omitempty"`
-}
-
 // ClusterPullSecretStatus defines the observed state of ClusterPullSecret
 type ClusterPullSecretStatus struct {
 }
 
-// +kubebuilder:object:root=true
-// +kubebuilder:resource:scope=Cluster
-// +kubebuilder:printcolumn:name="SecretName",type=string,JSONPath=`.spec.secretRef.name`
-// +kubebuilder:printcolumn:name="SecretNamespace",type=string,JSONPath=`.spec.secretRef.namespace`
+//+kubebuilder:object:root=true
+//+kubebuilder:resource:scope=Cluster
+//+kubebuilder:printcolumn:name="SecretName",type=string,JSONPath=`.spec.secretRef.name`
+//+kubebuilder:printcolumn:name="SecretNamespace",type=string,JSONPath=`.spec.secretRef.namespace`
 
 // ClusterPullSecret is the Schema for the clusterpullsecrets API
 type ClusterPullSecret struct {
@@ -46,7 +41,24 @@ type ClusterPullSecret struct {
 	Status ClusterPullSecretStatus `json:"status,omitempty"`
 }
 
-// +kubebuilder:object:root=true
+// ObjectMeta contains enough information to locate the referenced Kubernetes resource object in any
+// namespace.
+type ObjectMeta struct {
+	// Name of the referent.
+	// +required
+	Name string `json:"name"`
+
+	// Namespace of the referent, when not specified it acts as LocalObjectReference.
+	// +optional
+	Namespace string `json:"namespace,omitempty"`
+}
+
+// ClusterPullSecretSpec defines the desired state of ClusterPullSecret
+type ClusterPullSecretSpec struct {
+	SecretRef *ObjectMeta `json:"secretRef,omitempty"`
+}
+
+//+kubebuilder:object:root=true
 
 // ClusterPullSecretList contains a list of ClusterPullSecret
 type ClusterPullSecretList struct {
