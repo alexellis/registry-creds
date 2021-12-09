@@ -31,7 +31,7 @@ jobs:
         uses: engineerd/setup-kind@v0.5.0
         with:
           version: "v0.9.0"
-          image: kindest/node:v1.18.8
+          image: kindest/node:v1.21.1
       - name: Load test image
         run: kind load --loglevel trace docker-image ghcr.io/alexellis/registry-creds:${{ github.sha }}
       - name: Apply manifests
