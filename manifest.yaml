@@ -49,6 +49,18 @@ spec:
             description: ClusterPullSecretSpec defines the desired state of ClusterPullSecret
             properties:
               secretRef:
+                description: ObjectMeta contains enough information to locate the
+                  referenced Kubernetes resource object in any namespace.
+                properties:
+                  name:
+                    description: Name of the referent.
+                    type: string
+                  namespace:
+                    description: Namespace of the referent, when not specified it
+                      acts as LocalObjectReference.
+                    type: string
+                required:
+                - name
                 type: object
             type: object
           status:
@@ -219,7 +231,7 @@ spec:
         - --enable-leader-election
         command:
         - /controller
-        image: ghcr.io/alexellis/registry-creds:0.3.0-rc1
+        image: ghcr.io/alexellis/registry-creds:0.3.0-rc4
         imagePullPolicy: IfNotPresent
         name: controller
         resources:

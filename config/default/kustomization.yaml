@@ -12,6 +12,6 @@ resources:
 - ../controller
 images:
 - name: ghcr.io/alexellis/registry-creds-controller
-  newTag: 0.3.0-rc1
+  newTag: 0.3.0-rc4
 - name: ghcr.io/ghcr.io/alexellis/registry-creds
   newTag: latest

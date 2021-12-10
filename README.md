@@ -74,6 +74,8 @@ Todo:
 
 ### Deploy to a cluster
 
+> Read "If you decide to use this tool at work" before you deploy this project.
+
 Apply the YAML for the manifest.
 
 ```bash
