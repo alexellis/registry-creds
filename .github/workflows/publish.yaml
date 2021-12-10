@@ -5,6 +5,12 @@ on:
     tags:
       - '*'
 
+permissions:
+  actions: read
+  checks: write
+  contents: read
+  packages: write
+
 jobs:
   publish:
     runs-on: ubuntu-latest
