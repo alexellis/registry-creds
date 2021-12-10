@@ -12,6 +12,14 @@ Checklist:
 
 Note: if the PR is for a typo, please close it and raise an issue instead.
 
+## Are you a GitHub Sponsor (Yes/No?)
+
+Pull Requests from sponsors get prioritised and a quicker response.
+
+Check at: https://github.com/sponsors/alexellis
+- [ ] Yes
+- [ ] No
+
 ## How Has This Been Tested?
 <!--- Please describe in detail how you tested your changes. -->
 <!--- Include details of your testing environment, and the tests you ran to -->

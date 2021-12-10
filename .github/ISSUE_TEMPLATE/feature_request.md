@@ -13,11 +13,12 @@ A clear and concise description of what the problem is. Ex. I'm always frustrate
 **Describe all possible solutions, and which you suggest**
 A clear and concise description of what you want to happen.
 
-
 **Describe alternatives and workarounds that you've considered**
 A clear and concise description of any alternative solutions or features you've considered.
 
 **Are you a GitHub Sponsor (Yes/No?)**
+
+Requests from sponsors get prioritised and a quicker response.
 
 Check at: https://github.com/sponsors/alexellis
 - [ ] Yes

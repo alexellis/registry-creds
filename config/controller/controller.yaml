@@ -27,7 +27,7 @@ spec:
         - /controller
         args:
         - --enable-leader-election
-        image: ghcr.io/alexellis/registry-creds:0.3.1-1
+        image: ghcr.io/alexellis/registry-creds:0.3.1-rc1
         name: controller
         imagePullPolicy: IfNotPresent
         resources:
