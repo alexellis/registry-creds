@@ -85,8 +85,6 @@ metadata:
 rules:
 - apiGroups:
   - ""
-  resourceNames:
-  - 8bdecb1a.alexellis.io
   resources:
   - configmaps
   verbs:
@@ -237,7 +235,7 @@ spec:
         resources:
           limits:
             cpu: 100m
-            memory: 64Mi
+            memory: 128Mi
           requests:
             cpu: 100m
             memory: 45Mi
