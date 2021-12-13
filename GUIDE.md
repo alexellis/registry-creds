@@ -9,13 +9,13 @@
 * You'll create a "seed secret", which the ClusterPullSecret will point to
 * The operator will clone your seed secret to each namespace, and append it to the default ServiceAccount's imagePullSecrets list
 
-### Set up your sponsorship
+## Usage
 
 This tool requires time and effort to maintain.
 
 If you use it at work, [become a sponsor](https://github.com/sponsors/alexellis).
 
-### Deploy to a cluster
+### Option A) Configuration with kubectl
 
 Apply the YAML for the manifest.
 
@@ -23,38 +23,38 @@ Apply the YAML for the manifest.
 kubectl apply -f https://raw.githubusercontent.com/alexellis/registry-creds/master/manifest.yaml
 ```
 
-### Or make locally
+Next, you'll need to create a seed secret and `ClusterPullSecret` referencing it.
 
-You can use the [arkade project](https://get-arkade.dev) to get CLIs the easy way, or find your way to the releases page of each application required.
-
-If you don't have a local Kubernetes cluster, you can create one with k3d, or KinD
+Create a "seed" secret so that it can be referenced by the ClusterPullSecret. You can customise the name, and namespace as per your own preference.
 
 ```bash
-arkade get kind
-kind create cluster
+export DOCKER_USERNAME=username
+export DOCKER_PASSWORD=mypassword
+export DOCKER_EMAIL=me@example.com
+
+kubectl create secret docker-registry registry-creds \
+  --namespace kube-system \
+  --docker-username=$DOCKER_USERNAME \
+  --docker-password=$DOCKER_PASSWORD \
+  --docker-email=$DOCKER_EMAIL
 ```
 
-Get the pre-reqs: kubectl and kustomize
+If you're not using the Docker Hub, then add `--docker-server`
 
-```bash
-arkade get kubectl
-arkade get kustomize
+Now create a `ClusterPullSecret` YAML file. This is a cluster-scoped resource, so you cannot specify a namespace for it. Populate `secretRef` with the secret name and namespace from above. This is the secret that will be copied to each namespace.
+
+```yaml
+apiVersion: ops.alexellis.io/v1
+kind: ClusterPullSecret
+metadata:
+  name: dockerhub-registry-creds
+spec:
+  secretRef:
+    name: registry-creds
+    namespace: kube-system
 ```
 
-Install with:
-
-```bash
-git clone https://github.com/alexellis/registry-creds
-cd registry-creds
-make install
-make run
-```
-
-> Note, you can also run `make install deploy` to try running in-cluster.
-
-## Usage
-
-### The easy way with `arkade`
+### Option B) Configuration with arkade
 
 Create an environment file i.e. `~/.docker-creds`, so that you are not having to keep typing passwords in.
 
@@ -85,38 +85,34 @@ arkade install registry-creds \
 
 > Optionally, you can also pass `--server`
 
-### Create a seed secret and `ClusterPullSecret`
+### Running the tool locally for development
 
-To use this operator create a `ClusterPullSecret` CustomResource and apply it to your cluster.
+You can use the [arkade project](https://get-arkade.dev) to get CLIs the easy way, or find your way to the releases page of each application required.
 
-Create a "seed" secret so that it can be referenced by the ClusterPullSecret. You can customise the name, and namespace as per your own preference.
+If you don't have a local Kubernetes cluster, you can create one with k3d, or KinD
 
 ```bash
-export DOCKER_USERNAME=username
-export DOCKER_PASSWORD=mypassword
-export DOCKER_EMAIL=me@example.com
-
-kubectl create secret docker-registry registry-creds \
-  --namespace kube-system \
-  --docker-username=$DOCKER_USERNAME \
-  --docker-password=$DOCKER_PASSWORD \
-  --docker-email=$DOCKER_EMAIL
+arkade get kind
+kind create cluster
 ```
 
-If you're not using the Docker Hub, then add `--docker-server`
+Get the pre-reqs: kubectl and kustomize
 
-Now create a `ClusterPullSecret` YAML file. This is a cluster-scoped resource, so you cannot specify a namespace for it. Populate `secretRef` with the secret name and namespace from above. This is the secret that will be copied to each namespace.
-
-```yaml
-apiVersion: ops.alexellis.io/v1
-kind: ClusterPullSecret
-metadata:
-  name: dockerhub-registry-creds
-spec:
-  secretRef:
-    name: registry-creds
-    namespace: kube-system
+```bash
+arkade get kubectl
+arkade get kustomize
 ```
+
+Install with:
+
+```bash
+git clone https://github.com/alexellis/registry-creds
+cd registry-creds
+make install
+make run
+```
+
+> Note, you can also run `make install deploy` to try running in-cluster.
 
 ### Rotate your seed secret and `ClusterPullSecret`
 
