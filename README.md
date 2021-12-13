@@ -35,6 +35,10 @@ This tool requires time and effort to maintain, so if you use it at work, you sh
 
 * [Set-up a sponsorship now](https://github.com/sponsors/alexellis)
 
+It's up to you to choose a tier or a custom amount based upon the value and time saving of the tool, plus its maintainance.
+
+Alternative approaches are available if you don't agree to these terms.
+
 ### Install & configure the tool
 
 * [Install the tool](GUIDE.md)
