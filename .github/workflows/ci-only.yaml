@@ -31,7 +31,7 @@ jobs:
           tags: ghcr.io/alexellis/registry-creds:${{ github.sha }}
 
       - name: Setup Kubernetes
-        uses: engineerd/setup-kind@master
+        uses: engineerd/setup-kind@v0.5.0
         with:
           version: v0.17.0
           image: kindest/node:v1.26.0@sha256:691e24bd2417609db7e589e1a479b902d2e209892a10ce375fab60a8407c7352
