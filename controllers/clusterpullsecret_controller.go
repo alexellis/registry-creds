@@ -7,7 +7,6 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 
 	"github.com/go-logr/logr"
-	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -38,13 +37,12 @@ type ClusterPullSecretReconciler struct {
 
 // Reconcile applies a number of ClusterPullSecrets to the default ServiceAccount
 // within various valid namespaces. Namespaces can be ignored as required.
-func (r *ClusterPullSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	ctx := context.Background()
+func (r *ClusterPullSecretReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = r.Log.WithValues("clusterpullsecret", req.NamespacedName)
 
 	var pullSecret v1.ClusterPullSecret
 	if err := r.Get(ctx, req.NamespacedName, &pullSecret); err != nil {
-		r.Log.Info(fmt.Sprintf("%s\n", errors.Wrap(err, "unable to fetch pullSecret")))
+		r.Log.Info(fmt.Sprintf("unable to fetch pullSecret %s, error: %s", req.NamespacedName, err))
 	} else {
 
 		r.Log.Info(fmt.Sprintf("Found: %s\n", pullSecret.Name))
@@ -52,7 +50,7 @@ func (r *ClusterPullSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, 
 		namespaces := &corev1.NamespaceList{}
 		r.Client.List(ctx, namespaces)
 
-		r.Log.Info(fmt.Sprintf("Found %d namespaces", len(namespaces.Items)))
+		r.Log.V(10).Info(fmt.Sprintf("Found %d namespaces", len(namespaces.Items)))
 
 		for _, namespace := range namespaces.Items {
 			namespaceName := namespace.Name

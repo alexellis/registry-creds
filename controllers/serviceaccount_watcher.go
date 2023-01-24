@@ -40,8 +40,7 @@ type ServiceAccountWatcher struct {
 // +kubebuilder:rbac:groups=core,resources=serviceaccounts,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=core,resources=serviceaccounts/status,verbs=get;update;patch
 
-func (r *ServiceAccountWatcher) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	ctx := context.Background()
+func (r *ServiceAccountWatcher) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	r.Log.WithValues("serviceaccount", req.NamespacedName)
 
 	var sa corev1.ServiceAccount
@@ -50,7 +49,7 @@ func (r *ServiceAccountWatcher) Reconcile(req ctrl.Request) (ctrl.Result, error)
 		return ctrl.Result{}, nil
 	}
 
-	r.Log.Info(fmt.Sprintf("detected a change in serviceaccount: %s", sa.Name))
+	r.Log.V(10).Info(fmt.Sprintf("detected a change in serviceaccount: %s", sa.Name))
 
 	pullSecretList := &v1.ClusterPullSecretList{}
 	err := r.Client.List(ctx, pullSecretList)
@@ -84,7 +83,7 @@ func (r *ServiceAccountWatcher) appendSecretToSA(clusterPullSecret v1.ClusterPul
 		return wrappedErr
 	}
 
-	r.Log.Info(fmt.Sprintf("Pull secrets: %v", sa.ImagePullSecrets))
+	r.Log.V(10).Info(fmt.Sprintf("Pull secrets: %v", sa.ImagePullSecrets))
 
 	hasSecret := hasImagePullSecret(sa, secretKey)
 
@@ -93,8 +92,7 @@ func (r *ServiceAccountWatcher) appendSecretToSA(clusterPullSecret v1.ClusterPul
 			Name: secretKey,
 		})
 
-		err = r.Update(ctx, sa.DeepCopy())
-		if err != nil {
+		if err = r.Update(ctx, sa.DeepCopy()); err != nil {
 			wrappedErr := fmt.Errorf("unable to append pull secret to service account: %s", err)
 			r.Log.Info(wrappedErr.Error())
 			return err
