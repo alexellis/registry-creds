@@ -52,7 +52,7 @@ func (r *SecretReconciler) Reconcile(clusterPullSecret v1.ClusterPullSecret, ns 
 		return nil
 	}
 
-	r.Log.Info(fmt.Sprintf("Getting SA for: %s", ns))
+	r.Log.V(10).Info(fmt.Sprintf("Getting SA for: %s", ns))
 
 	if clusterPullSecret.Spec.SecretRef == nil ||
 		clusterPullSecret.Spec.SecretRef.Name == "" ||
@@ -120,8 +120,6 @@ func (r *SecretReconciler) createSecret(clusterPullSecret v1.ClusterPullSecret, 
 			return errors.Wrap(err, "unexpected error checking for the namespaced pull secret")
 		}
 
-		r.Log.Info(fmt.Sprintf("secret not found: %s.%s, %s", secretKey, ns, err.Error()))
-
 		nsSecret = &corev1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      secretKey,
@@ -161,7 +159,7 @@ func (r *SecretReconciler) appendSecretToSA(clusterPullSecret v1.ClusterPullSecr
 		return wrappedErr
 	}
 
-	r.Log.Info(fmt.Sprintf("Pull secrets: %v", sa.ImagePullSecrets))
+	r.Log.V(10).Info(fmt.Sprintf("Pull secrets: %v", sa.ImagePullSecrets))
 
 	hasSecret := hasImagePullSecret(sa, secretKey)
 

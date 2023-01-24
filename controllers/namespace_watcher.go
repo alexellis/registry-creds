@@ -9,7 +9,6 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 
 	"github.com/go-logr/logr"
-	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -29,17 +28,16 @@ type NamespaceWatcher struct {
 // +kubebuilder:rbac:groups=core,resources=namespaces,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=core,resources=namespaces/status,verbs=get;update;patch
 
-func (r *NamespaceWatcher) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	ctx := context.Background()
+func (r *NamespaceWatcher) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	r.Log.WithValues("namespace", req.NamespacedName)
 
 	var namespace corev1.Namespace
 	if err := r.Get(ctx, req.NamespacedName, &namespace); err != nil {
-		r.Log.Info(fmt.Sprintf("%s", errors.Wrap(err, "unable to fetch pullSecret")))
+		r.Log.Info(fmt.Sprintf("unable to fetch pullSecret %s, error: %s", req.NamespacedName, err))
 		return ctrl.Result{}, nil
 	}
 
-	r.Log.Info(fmt.Sprintf("detected a change in namespace: %s", namespace.Name))
+	r.Log.V(10).Info(fmt.Sprintf("detected a change in namespace: %s", namespace.Name))
 
 	pullSecretList := &opsv1.ClusterPullSecretList{}
 	err := r.Client.List(ctx, pullSecretList)
