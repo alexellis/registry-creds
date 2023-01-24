@@ -2,8 +2,6 @@
 # Image URL to use all building/pushing image targets
 TAG?=latest
 
-# Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
-CRD_OPTIONS ?= "crd:trivialVersions=true"
 export DOCKER_CLI_EXPERIMENTAL=enabled
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
@@ -47,7 +45,7 @@ shrinkwrap:
 	kustomize build > ../../manifest.yaml
 # Generate manifests e.g. CRD, RBAC etc.
 manifests: controller-gen
-	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=registry-creds-role paths="./..." output:crd:artifacts:config=config/crd/bases
+	$(CONTROLLER_GEN) rbac:roleName=registry-creds-role paths="./..." output:crd:artifacts:config=config/crd/bases +crd
 
 # Run go fmt against code
 fmt:
