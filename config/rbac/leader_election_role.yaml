@@ -12,3 +12,12 @@ rules:
       - create
       - update
       - patch
+  - apiGroups:
+      - coordination.k8s.io
+    verbs:
+      - get
+      - create
+      - update
+      - patch
+    resources:
+      - leases
