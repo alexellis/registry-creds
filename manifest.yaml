@@ -9,8 +9,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.11.1
-  creationTimestamp: null
+    controller-gen.kubebuilder.io/version: v0.13.0
   name: clusterpullsecrets.ops.alexellis.io
 spec:
   group: ops.alexellis.io
@@ -99,7 +98,6 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  creationTimestamp: null
   name: registry-creds-registry-creds-role
 rules:
 - apiGroups:
@@ -232,7 +230,7 @@ spec:
         - --enable-leader-election
         command:
         - /controller
-        image: ghcr.io/alexellis/registry-creds:0.3.2-rc1
+        image: ghcr.io/alexellis/registry-creds:0.3.2
         imagePullPolicy: IfNotPresent
         name: controller
         resources:

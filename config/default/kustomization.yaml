@@ -1,7 +1,6 @@
 namespace: registry-creds-system
 namePrefix: registry-creds-
 
-
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
@@ -10,6 +9,6 @@ resources:
 - ../controller
 images:
 - name: ghcr.io/alexellis/registry-creds-controller
-  newTag: 0.3.2-rc1
+  newTag: 0.3.2
 - name: ghcr.io/ghcr.io/alexellis/registry-creds
   newTag: latest
