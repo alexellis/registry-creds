@@ -153,10 +153,13 @@ func (r *SecretReconciler) appendSecretToSA(clusterPullSecret v1.ClusterPullSecr
 	sa := &corev1.ServiceAccount{}
 	err := r.Client.Get(ctx, client.ObjectKey{Name: serviceAccountName, Namespace: ns}, sa)
 	if err != nil {
-		r.Log.Info(fmt.Sprintf("error getting SA in namespace: %s, %s", ns, err.Error()))
-		wrappedErr := fmt.Errorf("unable to append pull secret to service account: %s", err)
-		r.Log.Info(wrappedErr.Error())
-		return wrappedErr
+		if !apierrors.IsConflict(err) {
+			r.Log.Info(fmt.Sprintf("error getting SA in namespace: %s, %s", ns, err.Error()))
+			wrappedErr := fmt.Errorf("unable to append pull secret to service account: %s", err)
+			r.Log.Info(wrappedErr.Error())
+			return wrappedErr
+		}
+		return err
 	}
 
 	r.Log.V(10).Info(fmt.Sprintf("Pull secrets: %v", sa.ImagePullSecrets))
@@ -170,9 +173,13 @@ func (r *SecretReconciler) appendSecretToSA(clusterPullSecret v1.ClusterPullSecr
 
 		err = r.Update(ctx, sa.DeepCopy())
 		if err != nil {
-			wrappedErr := fmt.Errorf("unable to append pull secret to service account: %s", err)
-			r.Log.Info(wrappedErr.Error())
-			return err
+			if !apierrors.IsConflict(err) {
+
+				wrappedErr := fmt.Errorf("unable to append pull secret to service account: %s", err)
+				r.Log.Info(wrappedErr.Error())
+				return err
+			}
+			return nil
 		}
 	}
 

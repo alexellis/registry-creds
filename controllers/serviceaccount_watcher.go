@@ -22,6 +22,7 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
+	kerrors "k8s.io/apimachinery/pkg/api/errors"
 
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
@@ -75,12 +76,16 @@ func (r *ServiceAccountWatcher) appendSecretToSA(clusterPullSecret v1.ClusterPul
 	secretKey := clusterPullSecret.Name + secretSuffix
 
 	sa := &corev1.ServiceAccount{}
-	err := r.Client.Get(ctx, client.ObjectKey{Name: serviceAccountName, Namespace: ns}, sa)
-	if err != nil {
-		r.Log.Info(fmt.Sprintf("error getting SA in namespace: %s, %s", ns, err.Error()))
-		wrappedErr := fmt.Errorf("unable to append pull secret to service account: %s", err)
-		r.Log.Info(wrappedErr.Error())
-		return wrappedErr
+	if err := r.Client.Get(ctx, client.ObjectKey{Name: serviceAccountName, Namespace: ns}, sa); err != nil {
+		if !kerrors.IsConflict(err) {
+
+			r.Log.Info(fmt.Sprintf("error getting SA in namespace: %s, %s", ns, err.Error()))
+			wrappedErr := fmt.Errorf("unable to append pull secret to service account: %s", err)
+			r.Log.Info(wrappedErr.Error())
+			return wrappedErr
+		}
+		return nil
+
 	}
 
 	r.Log.V(10).Info(fmt.Sprintf("Pull secrets: %v", sa.ImagePullSecrets))
@@ -92,10 +97,14 @@ func (r *ServiceAccountWatcher) appendSecretToSA(clusterPullSecret v1.ClusterPul
 			Name: secretKey,
 		})
 
-		if err = r.Update(ctx, sa.DeepCopy()); err != nil {
-			wrappedErr := fmt.Errorf("unable to append pull secret to service account: %s", err)
-			r.Log.Info(wrappedErr.Error())
-			return err
+		if err := r.Update(ctx, sa.DeepCopy()); err != nil {
+			if !kerrors.IsConflict(err) {
+
+				wrappedErr := fmt.Errorf("unable to append pull secret to service account: %s", err)
+				r.Log.Info(wrappedErr.Error())
+				return err
+			}
+			return nil
 		}
 	}
 

@@ -9,6 +9,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 
 	"github.com/go-logr/logr"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -49,10 +50,12 @@ func (r *NamespaceWatcher) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	for _, pullSecret := range pullSecretList.Items {
 		err := r.SecretReconciler.Reconcile(pullSecret, namespace.Name)
 		if err != nil {
-			r.Log.Info(fmt.Sprintf("error reconciling namespace: %s with cluster pull secret: %s, error: %s",
-				namespace.Name,
-				pullSecret.Name,
-				err.Error()))
+			if !errors.IsConflict(err) {
+				r.Log.Info(fmt.Sprintf("error reconciling namespace: %s with cluster pull secret: %s, error: %s",
+					namespace.Name,
+					pullSecret.Name,
+					err.Error()))
+			}
 		}
 	}
 
