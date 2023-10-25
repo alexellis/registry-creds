@@ -2,11 +2,19 @@
 
 [![CI status](https://github.com/alexellis/registry-creds/actions/workflows/ci-only.yaml/badge.svg)](https://github.com/alexellis/registry-creds/actions/workflows/ci-only.yaml)
 
-This operator can be used to propagate a single ImagePullSecret to all namespaces within your cluster, so that images can be pulled with authentication.
+This operator can be used to propagate a single ImagePullSecret to all namespaces within your cluster, so that images are pulled using authentication.
 
-### Why is this operator required?
+See also: [ROADMAP.md](/ROADMAP.md)
 
-The primary reason for creating this operator, is to make it easier for users of Kubernetes to consume images from the Docker Hub after [recent pricing and rate-limiting changes](https://www.docker.com/pricing) were brought in, an authenticated account is now required to pull images.
+### Use-case: Propagate a private registry secret to all namespaces
+
+The second use-case for this operator is to take an authentication token which is required to pull images from a private registry, and to make sure it's available and configured for each and every namespace.
+
+For example, if you were running a multi-tenant service, where customers had their own namespaces, and every Pod was pulled from a common private registry. You could use this operator to automate what would otherwise be a manual and error-prone process.
+
+### Use-case: Docker Hub Rate Limits
+
+The original need for this operator, was to make it easier for users of Kubernetes to consume images from the Docker Hub after [recent pricing and rate-limiting changes](https://www.docker.com/pricing) were brought in, an authenticated account is now required to pull images.
 
 These are the limits as understood at time of writing:
 
@@ -25,24 +33,14 @@ The normal process is as follows, which becomes tedious and repetitive when you 
 * Create a secret
 * Edit your service account, and add the name of the secret to `imagePullSecrets`
 
-See also: [ROADMAP.md](/ROADMAP.md)
-
-## Getting started
-
-### Set up your sponsorship
-
-This tool requires time and effort to maintain, so if you use it at work, you should become a sponsor on GitHub:
-
-* [Set-up a sponsorship now](https://github.com/sponsors/alexellis)
-
-It's up to you to choose a tier or a custom amount based upon the value and time saving of the tool, plus its maintainance.
-
-Alternative approaches are available if you don't agree to these terms.
-
-### Install & configure the tool
+## Getting Started
 
 * [Install the tool](GUIDE.md)
 
-### Support
+## Support is for sponsors only
 
-[Sponsors](https://github.com/sponsors/alexellis) may raise a GitHub issue to propose changes, new features and to request help with usage.
+Support is only offered to my [GitHub Sponsors](https://github.com/sponsors/alexellis). If you're sponsoring @alexellis or @openfaas on GitHub, then feel raise a GitHub issue to propose changes, new features and to request help with usage.
+
+## License
+
+MIT

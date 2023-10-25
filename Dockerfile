@@ -1,4 +1,4 @@
-FROM --platform=${BUILDPLATFORM:-linux/amd64} golang:1.19 as builder
+FROM --platform=${BUILDPLATFORM:-linux/amd64} golang:1.21 as builder
 
 ARG TARGETPLATFORM
 ARG BUILDPLATFORM
@@ -22,7 +22,7 @@ COPY controllers/ controllers/
 # Build
 RUN echo flags=${Version} ${GitCommit}
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
-  GO111MODULE=on go build -ldflags "-s -w -X main.Release=${Version} -X main.SHA=${GitCommit}" -a -o /usr/bin/controller
+  GO111MODULE=on go build -ldflags "-s -w -X main.Release=${Version} -X main.SHA=${GitCommit}" -o /usr/bin/controller
 
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
 FROM --platform=${BUILDPLATFORM:-linux/amd64} gcr.io/distroless/static:nonroot

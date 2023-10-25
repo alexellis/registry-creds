@@ -11,10 +11,6 @@
 
 ## Usage
 
-This tool requires time and effort to maintain.
-
-If you use it at work, [become a sponsor](https://github.com/sponsors/alexellis).
-
 ### Option A) Configuration with kubectl
 
 Apply the YAML for the manifest.
