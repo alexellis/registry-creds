@@ -241,3 +241,4 @@ spec:
             cpu: 100m
             memory: 45Mi
       terminationGracePeriodSeconds: 10
+      automountServiceAccountToken: true
