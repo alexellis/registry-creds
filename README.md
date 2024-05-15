@@ -37,10 +37,6 @@ The normal process is as follows, which becomes tedious and repetitive when you 
 
 * [Install the tool](GUIDE.md)
 
-## Support is for sponsors and OpenFaaS Ltd customers only
-
-Support is only offered to OpenFaaS Ltd customers an my [GitHub Sponsors](https://github.com/sponsors/alexellis). If you're sponsoring @alexellis or @openfaas on GitHub, then feel raise a GitHub issue to propose changes, new features and to request help with usage.
-
 ## License
 
 MIT
