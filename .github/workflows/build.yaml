@@ -33,7 +33,7 @@ jobs:
       - name: Setup Kubernetes
         uses: engineerd/setup-kind@v0.6.2
         with:
-          version: "v0.24.0"
+          version: "v1.31.2"
 
       - name: Load test image
         run: kind load --loglevel trace docker-image ghcr.io/alexellis/registry-creds:${{ github.sha }}
