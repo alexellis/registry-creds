@@ -15,13 +15,13 @@ jobs:
           fetch-depth: 1
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
 
       - name: Local build
         id: local_build
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v5
         with:
           build-args: |
             Version=dev
@@ -31,10 +31,9 @@ jobs:
           tags: ghcr.io/alexellis/registry-creds:${{ github.sha }}
 
       - name: Setup Kubernetes
-        uses: engineerd/setup-kind@v0.5.0
+      - uses: engineerd/setup-kind@v0.6.0
         with:
-          version: "v0.17.0"
-          image: kindest/node:v1.26.0@sha256:691e24bd2417609db7e589e1a479b902d2e209892a10ce375fab60a8407c7352
+          version: "v0.24.0"
 
       - name: Load test image
         run: kind load --loglevel trace docker-image ghcr.io/alexellis/registry-creds:${{ github.sha }}
