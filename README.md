@@ -1,6 +1,6 @@
 ## registry-creds operator
 
-[![CI status](https://github.com/alexellis/registry-creds/actions/workflows/ci-only.yaml/badge.svg)](https://github.com/alexellis/registry-creds/actions/workflows/ci-only.yaml)
+[![build](https://github.com/alexellis/registry-creds/actions/workflows/build.yaml/badge.svg)](https://github.com/alexellis/registry-creds/actions/workflows/build.yaml)
 
 This operator can be used to propagate a single ImagePullSecret to all namespaces within your cluster, so that images are pulled using authentication.
 
