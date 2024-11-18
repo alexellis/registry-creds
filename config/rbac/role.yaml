@@ -9,12 +9,8 @@ rules:
   resources:
   - namespaces
   verbs:
-  - create
-  - delete
   - get
   - list
-  - patch
-  - update
   - watch
 - apiGroups:
   - ""
@@ -22,8 +18,6 @@ rules:
   - namespaces/status
   verbs:
   - get
-  - patch
-  - update
 - apiGroups:
   - ""
   resources:
@@ -69,12 +63,8 @@ rules:
   resources:
   - clusterpullsecrets
   verbs:
-  - create
-  - delete
   - get
   - list
-  - patch
-  - update
   - watch
 - apiGroups:
   - ops.alexellis.io

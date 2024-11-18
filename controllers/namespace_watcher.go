@@ -26,8 +26,8 @@ type NamespaceWatcher struct {
 	SecretReconciler *SecretReconciler
 }
 
-// +kubebuilder:rbac:groups=core,resources=namespaces,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=core,resources=namespaces/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=core,resources=namespaces,verbs=get;list;watch
+// +kubebuilder:rbac:groups=core,resources=namespaces/status,verbs=get
 
 func (r *NamespaceWatcher) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	r.Log.WithValues("namespace", req.NamespacedName)
