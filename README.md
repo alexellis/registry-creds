@@ -1,18 +1,19 @@
 ## registry-creds operator
 
-[![CI status](https://github.com/alexellis/registry-creds/actions/workflows/ci-only.yaml/badge.svg)](https://github.com/alexellis/registry-creds/actions/workflows/ci-only.yaml)
+[![Sponsor this](https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&link=https://github.com/sponsors/alexellis)](https://github.com/sponsors/alexellis) [![build](https://github.com/alexellis/registry-creds/actions/workflows/build.yaml/badge.svg)](https://github.com/alexellis/registry-creds/actions/workflows/build.yaml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 
 This operator can be used to propagate a single ImagePullSecret to all namespaces within your cluster, so that images are pulled using authentication.
 
 See also: [ROADMAP.md](/ROADMAP.md)
 
-### Use-case: Propagate a private registry secret to all namespaces
+### Use-case 1: Propagate a private registry secret to all namespaces
 
 The second use-case for this operator is to take an authentication token which is required to pull images from a private registry, and to make sure it's available and configured for each and every namespace.
 
 For example, if you were running a multi-tenant service, where customers had their own namespaces, and every Pod was pulled from a common private registry. You could use this operator to automate what would otherwise be a manual and error-prone process.
 
-### Use-case: Docker Hub Rate Limits
+### Use-case 2: Docker Hub Rate Limits
 
 The original need for this operator, was to make it easier for users of Kubernetes to consume images from the Docker Hub after [recent pricing and rate-limiting changes](https://www.docker.com/pricing) were brought in, an authenticated account is now required to pull images.
 
@@ -37,9 +38,15 @@ The normal process is as follows, which becomes tedious and repetitive when you 
 
 * [Install the tool](GUIDE.md)
 
-## Support is for sponsors and OpenFaaS Ltd customers only
+## Do you use `registry-creds`?
 
-Support is only offered to OpenFaaS Ltd customers an my [GitHub Sponsors](https://github.com/sponsors/alexellis). If you're sponsoring @alexellis or @openfaas on GitHub, then feel raise a GitHub issue to propose changes, new features and to request help with usage.
+`k3sup` was created by [Alex Ellis](https://github.com/users/alexellis/sponsorship) - the founder of [OpenFaaS &reg;](https://www.openfaas.com/) & [inlets](https://inlets.dev/). 
+
+<a href="https://github.com/sponsors/alexellis/">
+<img alt="Sponsor this project" src="https://github.com/alexellis/alexellis/blob/master/sponsor-today.png" width="90%">
+</a>
+
+Want to see continued development? [Sponsor alexellis on GitHub](https://github.com/users/alexellis/sponsorship)
 
 ## License
 

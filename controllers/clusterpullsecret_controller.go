@@ -26,7 +26,7 @@ type ClusterPullSecretReconciler struct {
 	SecretReconciler *SecretReconciler
 }
 
-// +kubebuilder:rbac:groups=ops.alexellis.io,resources=clusterpullsecrets,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=ops.alexellis.io,resources=clusterpullsecrets,verbs=get;list;watch
 // +kubebuilder:rbac:groups=ops.alexellis.io,resources=clusterpullsecrets/status,verbs=get;update;patch
 
 // +kubebuilder:rbac:groups=core,resources=secrets,verbs=get;list;watch;create;update;patch;delete

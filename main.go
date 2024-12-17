@@ -18,6 +18,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -60,6 +61,8 @@ func main() {
 
 	z := zap.New(zap.UseDevMode(true)).V(2)
 	ctrl.SetLogger(z)
+
+	fmt.Printf("registry-creds - Copyright Alex Ellis, OpenFaaS Ltd 2024\n\n")
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme: scheme,
@@ -119,7 +122,7 @@ func main() {
 	}
 
 	// +kubebuilder:scaffold:builder
-	setupLog.Info("starting manager with the version %s and commit %s", Release, SHA)
+	setupLog.Info("Starting manager", "release", Release, "sha", SHA)
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
