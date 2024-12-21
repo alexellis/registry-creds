@@ -11,7 +11,7 @@ See also: [ROADMAP.md](/ROADMAP.md)
 
 The second use-case for this operator is to take an authentication token which is required to pull images from a private registry, and to make sure it's available and configured for each and every namespace.
 
-For example, if you were running a multi-tenant service, where customers had their own namespaces, and every Pod was pulled from a common private registry. You could use this operator to automate what would otherwise be a manual and error-prone process.
+For example, if you were running a multi-tenant service, where each tenant has their own namespaces, and every image is sourced from a common private registry. You could use this operator to propagate the pull secret for each namespace.
 
 ### Use-case 2: Docker Hub Rate Limits
 
