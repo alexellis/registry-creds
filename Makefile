@@ -35,13 +35,13 @@ uninstall: manifests
 
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 deploy: manifests
-	cd config/controller && kustomize edit set image controller=ghcr.io/ghcr.io/alexellis/registry-creds:$(TAG)
+	cd config/controller && kustomize edit set image ghcr.io/alexellis/registry-creds=ghcr.io/alexellis/registry-creds:$(TAG)
 	kustomize build config/default | kubectl apply -f -
 
 .PHONY: shrinkwrap
 shrinkwrap:
 	cd config/default && \
-	kustomize edit set image ghcr.io/ghcr.io/alexellis/registry-creds:$(TAG) && \
+	kustomize edit set image ghcr.io/alexellis/registry-creds=ghcr.io/alexellis/registry-creds:$(TAG) && \
 	kustomize build > ../../manifest.yaml
 # Generate manifests e.g. CRD, RBAC etc.
 manifests: controller-gen
@@ -84,7 +84,7 @@ ifeq (, $(shell which controller-gen))
 	CONTROLLER_GEN_TMP_DIR=$$(mktemp -d) ;\
 	cd $$CONTROLLER_GEN_TMP_DIR ;\
 	go mod init tmp ;\
-	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.13.0;\
+	go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.23.0;\
 	rm -rf $$CONTROLLER_GEN_TMP_DIR ;\
 	}
 CONTROLLER_GEN=$(GOBIN)/controller-gen
