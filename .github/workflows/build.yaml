@@ -38,7 +38,7 @@ jobs:
           cluster_name: kind
 
       - name: Load test image
-        run: kind load --loglevel trace docker-image ghcr.io/alexellis/registry-creds:${{ github.sha }}
+        run: kind load docker-image -v 1 ghcr.io/alexellis/registry-creds:${{ github.sha }}
       - name: Apply manifests
         run: |
           TAG=${{ github.sha }} make shrinkwrap
