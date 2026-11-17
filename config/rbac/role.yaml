@@ -22,25 +22,6 @@ rules:
   - ""
   resources:
   - secrets
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - ""
-  resources:
-  - secrets/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - ""
-  resources:
   - serviceaccounts
   verbs:
   - create
@@ -53,6 +34,7 @@ rules:
 - apiGroups:
   - ""
   resources:
+  - secrets/status
   - serviceaccounts/status
   verbs:
   - get
